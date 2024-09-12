@@ -1,0 +1,195 @@
+/* style.qss */
+
+/* Stile globale */
+* {
+    font-family: Georgia, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    color: #00241B;  /* Colore più scuro per il testo */
+}
+
+/* Stile per la finestra principale */
+QMainWindow {
+    background-color: #B5FFE1;  /* Colore di sfondo più chiaro */
+    border: none;
+}
+
+/* Stile per i pulsanti */
+QPushButton {
+    background-color: #4E878C;  /* Colore intermedio della palette */
+    color: white;
+    border: 1px solid #00241B;  /* Bordo scuro per contrasto */
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+QPushButton:hover {
+    background-color: #65B891;  /* Colore leggermente più chiaro per hover */
+}
+
+QPushButton:pressed {
+    background-color: #00241B;  /* Colore più scuro per effetto di pressione */
+}
+
+/* Stile per le etichette */
+QLabel {
+    font-size: 14px;
+    color: #00241B;  /* Colore scuro per il testo */
+}
+
+/* Stile per le barre di progressione */
+QProgressBar {
+    border: 1px solid #4E878C;
+    border-radius: 5px;
+    text-align: center;
+    background: #B5FFE1;
+    height: 15px;
+    font-size: 12px;
+    color: #00241B;  /* Testo della barra di progresso */
+}
+
+QProgressBar::chunk {
+    background-color: #65B891;  /* Colore del progresso */
+    width: 20px;
+}
+
+/* Stile per il QTextEdit */
+QTextEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #4E878C;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 5px;
+    color: #00241B;
+}
+
+/* Stile per QLineEdit */
+QLineEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #4E878C;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #00241B;
+}
+
+/* Stile per il QComboBox */
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #4E878C;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #00241B;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #4E878C;
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #B5FFE1;
+    border: 1px solid #4E878C;
+    selection-background-color: #4E878C;
+    selection-color: #FFFFFF;
+}
+
+QListWidget {
+    background-color: #B5FFE1;
+    border: 1px solid #65B891;
+}
+
+QListWidget::item {
+    padding: 10px;  /* Margini per migliorare la leggibilità */
+    border: 1px solid #4E878C;
+    background-color: #93E5AB;
+    color: #00241B;  /* Colore del testo più scuro */
+    font-size: 14px;  /* Dimensione del testo */
+}
+
+QListWidget::item:selected {
+    background-color: #4E878C;  /* Colore di selezione */
+    color: white;
+}
+
+
+/* Stile per le QTabWidget e le schede */
+QTabWidget::pane {
+    border: 1px solid #4E878C;
+    background-color: #B5FFE1;
+    border-radius: 5px;
+    margin: 2px;
+}
+
+QTabBar::tab {
+    background: #93E5AB;
+    border: 1px solid #4E878C;
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin-right: 2px;
+    font-size: 14px;
+}
+
+QTabBar::tab:selected {
+    background: #65B891;
+    color: white;
+}
+
+QTabBar::tab:!selected:hover {
+    background: #4E878C;
+}
+
+/* Stile per il QGroupBox */
+QGroupBox {
+    border: 1px solid #4E878C;
+    border-radius: 5px;
+    margin-top: 10px;
+    padding: 10px;
+    font-weight: bold;
+    color: #00241B;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; /* align at the top center */
+    padding: 0 3px;
+    background-color: #B5FFE1;
+}
+
+/* Stile per i messaggi di errore e avvisi */
+QMessageBox {
+    background-color: #B5FFE1;
+}
+
+QMessageBox QLabel {
+    color: #00241B;
+    font-size: 14px;
+}
+
+QMessageBox QPushButton {
+    background-color: #4E878C;
+    color: white;
+    border: 1px solid #00241B;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #65B891;
+}
+
+QMessageBox QPushButton:pressed {
+    background-color: #00241B;
+}
