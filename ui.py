@@ -575,9 +575,9 @@ class NormaViewer(QMainWindow):
 
         # Popola l'interfaccia con i dati ricevuti
         self.urn_label.setText(f'<a href="{normavisitata.urn}">{normavisitata.urn}</a>')
-        self.tipo_atto_label.setText(normavisitata.tipo_atto_str)
-        self.data_label.setText(normavisitata.data)
-        self.numero_atto_label.setText(normavisitata.numero_atto)
+        self.tipo_atto_label.setText(normavisitata.norma.tipo_atto_str)
+        self.data_label.setText(normavisitata.norma.data)
+        self.numero_atto_label.setText(normavisitata.norma.numero_atto)
 
         # Pulisce e visualizza il testo
         cleaned_text = re.sub(r'\n\s*\n', '\n', normavisitata._article_text.strip()) if normavisitata._article_text else ''

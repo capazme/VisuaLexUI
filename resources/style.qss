@@ -64,7 +64,7 @@ QProgressBar::chunk {
 QTextEdit {
     background-color: #FFFFFF;
     border: 1px solid #B0B0B0;
-    font-family: 'Consolas', monospace;
+    font-family: 'Georgia', monospace;
     font-size: 14px;
     padding: 10px;
     border-radius: 4px;
