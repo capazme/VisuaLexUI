@@ -1,0 +1,158 @@
+/* Template QSS con segnaposto per colori generici */
+
+/* Stile globale */
+* {
+    font-family: 'Georgia', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: {FONT_SIZE}px;  /* Dimensione dinamica del font */
+    color: {TEXT_COLOR};  /* Colore principale del testo */
+}
+
+/* Stile per la finestra principale */
+QMainWindow {
+    background-color: {BACKGROUND_COLOR};  /* Colore di sfondo principale */
+    border: none;
+}
+
+/* Stile per i pulsanti */
+QPushButton {
+    background-color: {PRIMARY_COLOR};  /* Colore primario dei pulsanti */
+    color: {SECONDARY_TEXT_COLOR};  /* Colore del testo dei pulsanti */
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: {FONT_SIZE}px;
+}
+
+QPushButton:hover {
+    background-color: {HOVER_COLOR};  /* Colore di hover dei pulsanti */
+    color: {HOVER_TEXT_COLOR};  /* Colore del testo quando hover */
+}
+
+QPushButton:pressed {
+    background-color: {PRESSED_COLOR};  /* Colore dei pulsanti quando premuti */
+}
+
+/* Stile per le etichette */
+QLabel {
+    font-size: {FONT_SIZE}px;
+    color: {TEXT_COLOR};  /* Colore del testo delle etichette */
+    padding: 2px;
+}
+
+/* Stile per le barre di progressione */
+QProgressBar {
+    border: 1px solid {PRIMARY_COLOR};
+    border-radius: 4px;
+    text-align: center;
+    background: {BACKGROUND_COLOR};
+    height: 16px;
+    font-size: 12px;
+    color: {TEXT_COLOR};
+}
+
+QProgressBar::chunk {
+    background-color: {PRIMARY_COLOR};
+    width: 20px;
+    border-radius: 4px;
+}
+
+/* Stile per QTextEdit */
+QTextEdit, QLineEdit, QComboBox, QDateEdit {
+    background-color: {SECONDARY_COLOR};
+    border: 1px solid {PRIMARY_COLOR};
+    font-family: 'Georgia', monospace;
+    font-size: {FONT_SIZE}px;
+    padding: 10px;
+    border-radius: 4px;
+    color: {TEXT_COLOR};
+    selection-background-color: {HOVER_COLOR};
+    selection-color: {SECONDARY_TEXT_COLOR};
+}
+
+/* Stile per QComboBox */
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: {PRIMARY_COLOR};
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: {SECONDARY_COLOR};
+    border: 1px solid {PRIMARY_COLOR};
+    selection-background-color: {HOVER_COLOR};
+    selection-color: {SECONDARY_TEXT_COLOR};
+}
+
+/* Stile per QListWidget */
+QListWidget, QTabWidget::pane {
+    background-color: {SECONDARY_COLOR};
+    border: 1px solid {PRIMARY_COLOR};
+    color: {TEXT_COLOR};
+}
+
+/* Stile per QTabBar::tab */
+QTabBar::tab {
+    background: {PRIMARY_COLOR};
+    border: 1px solid {PRIMARY_COLOR};
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 2px;
+    font-size: {FONT_SIZE}px;
+}
+
+QTabBar::tab:selected {
+    background: {SECONDARY_COLOR};
+    border-bottom-color: {SECONDARY_COLOR};
+}
+
+QTabBar::tab:!selected:hover {
+    background: {HOVER_COLOR};
+}
+
+/* Stile per QGroupBox */
+QGroupBox {
+    border: 1px solid {PRIMARY_COLOR};
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 10px;
+    font-weight: bold;
+    color: {TEXT_COLOR};
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 3px 0 3px;
+    background-color: transparent;
+}
+
+/* Stile per QCalendarWidget */
+QCalendarWidget {
+    border: 1px solid {PRIMARY_COLOR};  /* Bordo neutro */
+    background-color: {SECONDARY_COLOR};  /* Sfondo leggero neutro */
+    border-radius: 5px;  /* Angoli arrotondati */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* Font chiaro e leggibile */
+    color: {TEXT_COLOR};  /* Colore del testo principale */
+}
+
+QCalendarWidget QToolButton {
+    background-color: {PRIMARY_COLOR};  /* Colore di sfondo dei pulsanti mese/anno */
+    color: {SECONDARY_TEXT_COLOR};  /* Colore del testo dei pulsanti */
+    border: none;  /* Nessun bordo */
+    border-radius: 4px;  /* Angoli arrotondati */
+    margin: 5px;  /* Margini per il distanziamento */
+    padding: 5px;  /* Padding interno */
+    font-size: 12px;  /* Dimensione del font */
+}
+
+QCalendarWidget QToolButton:hover {
+    background-color: {HOVER_COLOR};  /* Colore di sfondo al passaggio del mouse */
+}
+
+/* Continua con il resto dei tuoi stili... */

@@ -1,4 +1,4 @@
-/* style.qss */
+/* blu_light_style.qss*/
 
 /* Stile globale */
 * {
@@ -163,6 +163,7 @@ QGroupBox {
     border: 1px solid #B0B0B0;
     border-radius: 4px;
     margin-top: 10px;
+    padding-top: 20px
     padding: 10px;
     font-weight: bold;
     color: #2E2E2E;
@@ -279,4 +280,64 @@ QToolTip {
     border: 1px solid #B0B0B0;
     padding: 5px;
     border-radius: 4px;
+}
+
+/* Stile per QCalendarWidget */
+QCalendarWidget {
+    border: 1px solid #B0B0B0;  /* Bordo neutro */
+    background-color: #F0F0F0;  /* Sfondo leggero neutro */
+    border-radius: 5px;  /* Angoli arrotondati */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* Font chiaro e leggibile */
+    color: #333333;  /* Colore del testo principale */
+}
+
+/* Stile per la parte del mese e dell'anno */
+QCalendarWidget QToolButton {
+    background-color: #E5E5E5;  /* Colore di sfondo dei pulsanti mese/anno */
+    color: #333333;  /* Colore del testo dei pulsanti */
+    border: none;  /* Nessun bordo */
+    border-radius: 4px;  /* Angoli arrotondati */
+    margin: 5px;  /* Margini per il distanziamento */
+    padding: 5px;  /* Padding interno */
+    font-size: 12px;  /* Dimensione del font */
+}
+
+QCalendarWidget QToolButton:hover {
+    background-color: #D0D0D0;  /* Colore di sfondo al passaggio del mouse */
+}
+
+QCalendarWidget QToolButton:pressed {
+    background-color: #C0C0C0;  /* Colore di sfondo quando il pulsante è premuto */
+}
+
+/* Stile per la griglia dei giorni */
+QCalendarWidget QTableView {
+    border: none;  /* Nessun bordo per la griglia */
+    background-color: #FAFAFA;  /* Sfondo leggero neutro */
+    selection-background-color: #A0A0A0;  /* Colore di sfondo quando un giorno è selezionato */
+    selection-color: #FFFFFF;  /* Colore del testo quando un giorno è selezionato */
+}
+
+/* Stile per i giorni della settimana */
+QCalendarWidget QHeaderView::section {
+    background-color: #E0E0E0;  /* Sfondo per i giorni della settimana */
+    color: #333333;  /* Colore del testo per i giorni della settimana */
+    padding: 5px;  /* Padding per il testo */
+    border: none;  /* Nessun bordo */
+    font-weight: bold;  /* Testo in grassetto */
+}
+
+/* Stile per i giorni disabilitati (come i giorni del mese precedente/successivo) */
+QCalendarWidget QAbstractItemView:disabled {
+    color: #B0B0B0;  /* Colore testo disabilitato */
+}
+
+/* Stile per i giorni di oggi */
+QCalendarWidget QTableView::item:selected {
+    background-color: #A0A0A0;  /* Sfondo del giorno selezionato */
+    color: #FFFFFF;  /* Colore del testo del giorno selezionato */
+}
+
+QCalendarWidget QTableView::item:hover {
+    background-color: #C0C0C0;  /* Sfondo al passaggio del mouse su un giorno */
 }

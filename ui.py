@@ -15,31 +15,48 @@ import logging
 import json
 from requests.exceptions import Timeout, ConnectionError, HTTPError, RequestException
 from functools import lru_cache
+from tools.config import THEMES
 from tools.map import FONTI_PRINCIPALI
 from tools.norma import NormaVisitata
 
 # Configura il logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def load_stylesheet():
-    # Ottieni il percorso corretto per il file 'style.qss'
-    if getattr(sys, 'frozen', False):
-        # Il percorso per l'esecuzione dell'eseguibile creato da PyInstaller
-        base_path = sys._MEIPASS
-    else:
-        # Il percorso per l'esecuzione durante lo sviluppo
-        base_path = os.path.dirname(os.path.abspath(__file__))
+def load_stylesheet(theme_name):
+    """
+    Carica il foglio di stile in base al tema selezionato.
 
-    # Costruisce il percorso completo per il file di stile
-    stylesheet_path = os.path.join(base_path, 'resources', 'style.qss')
+    Args:
+        theme_name (str): Nome del tema selezionato.
 
-    # Carica e restituisce il file di stile
+    Returns:
+        str: Contenuto del foglio di stile.
+    """
+    # Ottieni il percorso corretto per il file di stile
     try:
+        # Se l'applicazione è eseguita come un eseguibile PyInstaller
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+
+        # Percorso della cartella resources
+        resources_path = os.path.join(base_path, 'resources')
+
+        # Trova il file .qss corrispondente al tema
+        stylesheet_file = THEMES.get(theme_name, "blu_light_style.qss")  # Default a blu_light_style.qss se non trovato
+        stylesheet_path = os.path.join(resources_path, stylesheet_file)
+
+        # Carica e restituisce il file di stile
         with open(stylesheet_path, 'r') as file:
             stylesheet = file.read()
+        logging.info(f"Caricato foglio di stile: {stylesheet_file}")
         return stylesheet
     except FileNotFoundError:
-        logging.warning("File di stile non trovato. Procedo senza caricare lo stylesheet.")
+        logging.warning(f"File di stile {stylesheet_file} non trovato. Procedo senza caricare lo stylesheet.")
+        return ""
+    except Exception as e:
+        logging.error(f"Errore nel caricamento del foglio di stile: {e}")
         return ""
 
 class FetchDataThread(QThread):
@@ -130,6 +147,8 @@ class NormaViewer(QMainWindow):
         # Cache per risultati di ricerca
         self.search_cache = {}
 
+
+
     def create_menu(self):
         # Barra dei menu
         menu_bar = self.menuBar()
@@ -138,16 +157,29 @@ class NormaViewer(QMainWindow):
         settings_menu = menu_bar.addMenu("Impostazioni")
 
         # Azione per la modalità scura
-        dark_mode_action = QAction(QIcon.fromTheme("weather-clear-night"), "Modalità Scura", self)
+        """ dark_mode_action = QAction(QIcon.fromTheme("weather-clear-night"), "Modalità Scura", self)
         dark_mode_action.setCheckable(True)
         dark_mode_action.setChecked(self.is_dark_mode)
         dark_mode_action.triggered.connect(self.toggle_dark_mode)
-        settings_menu.addAction(dark_mode_action)
+        settings_menu.addAction(dark_mode_action) """
 
         # Azione per modificare l'URL dell'API
         api_url_action = QAction(QIcon.fromTheme("network-wired"), "Modifica URL API", self)
         api_url_action.triggered.connect(self.change_api_url)
         settings_menu.addAction(api_url_action)
+
+        # Sottomenu per selezionare il tema
+        theme_menu = settings_menu.addMenu("Seleziona Tema")
+
+        # Aggiungi opzioni di tema
+        self.theme_actions = {}  # Dizionario per salvare le azioni dei temi
+        for theme_name in THEMES.keys():
+            theme_action = QAction(theme_name, self)
+            theme_action.setCheckable(True)
+            theme_action.setChecked(self.current_theme == theme_name)
+            theme_action.triggered.connect(lambda checked, name=theme_name: self.change_theme(name))
+            theme_menu.addAction(theme_action)
+            self.theme_actions[theme_name] = theme_action
 
     def change_api_url(self):
         # Mostra un dialogo per l'input dell'URL
@@ -159,30 +191,30 @@ class NormaViewer(QMainWindow):
 
     def toggle_dark_mode(self, checked):
         self.is_dark_mode = checked
+        # Carica il foglio di stile appropriato in base al tema e alla modalità
         if self.is_dark_mode:
-            palette = QPalette()
-            palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
-            palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
-            palette.setColor(QPalette.ColorRole.Base, QColor(35, 35, 35))
-            palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
-            palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
-            palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
-            palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
-            palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
-            palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
-            palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-            palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
-            palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
-            palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
-            self.setPalette(palette)
+            dark_theme_name = self.current_theme.replace("Light", "Dark")
+            stylesheet = load_stylesheet(dark_theme_name)
         else:
-            self.setPalette(self.style().standardPalette())
+            stylesheet = load_stylesheet(self.current_theme)
+
+        if stylesheet:
+            self.setStyleSheet(stylesheet)
+
         # Salva la modalità nelle impostazioni
         self.settings.setValue("dark_mode", self.is_dark_mode)
 
     def load_settings(self):
         # Carica le impostazioni salvate
         self.is_dark_mode = self.settings.value("dark_mode", False, type=bool)
+        self.current_theme = self.settings.value("theme", "Blue Light")
+        
+        # Carica il foglio di stile corrispondente al tema salvato
+        stylesheet = load_stylesheet(self.current_theme)
+        if stylesheet:
+            self.setStyleSheet(stylesheet)
+
+        # Imposta la modalità scura se abilitata
         if self.is_dark_mode:
             self.toggle_dark_mode(True)
 
@@ -671,14 +703,46 @@ class NormaViewer(QMainWindow):
         self.tabs.clear()
         self.dynamic_tabs.clear()
 
+    def change_theme(self, theme_name):
+        """
+        Cambia il tema dell'applicazione e applica il foglio di stile corrispondente.
+        
+        Args:
+            theme_name (str): Nome del tema selezionato.
+        """
+        self.current_theme = theme_name
+        
+        # Resetta lo stile prima di applicare il nuovo
+        self.reset_stylesheet()
+        
+        stylesheet = load_stylesheet(theme_name)
+        if stylesheet:
+            self.setStyleSheet(stylesheet)
+        
+        # Aggiorna le azioni dei menu per riflettere il tema selezionato
+        for name, action in self.theme_actions.items():
+            action.setChecked(name == theme_name)
+        
+        # Salva il tema nelle impostazioni
+        self.settings.setValue("theme", theme_name)
+        logging.info(f"Tema cambiato a: {theme_name}")
+
+    def reset_stylesheet(self):
+        """
+        Resetta il foglio di stile corrente per evitare sovrapposizioni.
+        """
+        self.setStyleSheet("")
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # Carica e applica il foglio di stile
-    stylesheet = load_stylesheet()  # Assicurati che il file si trovi nella directory corretta
+    viewer = NormaViewer()
+    
+    # Carica il foglio di stile iniziale in base alle impostazioni salvate
+    stylesheet = load_stylesheet(viewer.current_theme)  # Passa il tema corrente
     if stylesheet:
         app.setStyleSheet(stylesheet)
-
-    viewer = NormaViewer()
     viewer.show()
     sys.exit(app.exec())
+
+

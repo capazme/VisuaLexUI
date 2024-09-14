@@ -1,0 +1,331 @@
+/* style.qss RED DARK THEME */
+
+/* Stile globale */
+* {
+    font-family: 'Georgia', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    color: #D6D5C9;  /* Colore principale del testo chiaro */
+}
+
+/* Stile per la finestra principale */
+QMainWindow {
+    background-color: #902923;  /* Colore di sfondo principale scuro */
+    border: none;
+}
+
+/* Stile per i pulsanti */
+QPushButton {
+    background-color: #A22C29;  /* Colore di base dei pulsanti */
+    color: #FFFFFF;  /* Testo dei pulsanti */
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: #B9BAA3;  /* Colore di hover dei pulsanti */
+    color: #0A100D;  /* Colore del testo quando hover */
+}
+
+QPushButton:pressed {
+    background-color: #D6D5C9;  /* Colore dei pulsanti quando premuti */
+    color: #902923;  /* Testo dei pulsanti quando premuti */
+}
+
+QPushButton:disabled {
+    background-color: #3A3A3A;  /* Colore dei pulsanti disabilitati */
+    color: #A22C29;
+}
+
+/* Stile per le etichette */
+QLabel {
+    font-size: 14px;
+    color: #D6D5C9;  /* Colore del testo delle etichette chiare */
+    padding: 2px;
+}
+
+/* Stile per le barre di progressione */
+QProgressBar {
+    border: 1px solid #902923;
+    border-radius: 4px;
+    text-align: center;
+    background: #3A3A3A;
+    height: 16px;
+    font-size: 12px;
+    color: #D6D5C9;
+}
+
+QProgressBar::chunk {
+    background-color: #A22C29;
+    width: 20px;
+    border-radius: 4px;
+}
+
+/* Stile per QTextEdit */
+QTextEdit {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    font-family: 'Georgia', monospace;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 4px;
+    color: #D6D5C9;
+    selection-background-color: #A22C29;
+    selection-color: #FFFFFF;
+}
+
+/* Stile per QLineEdit */
+QLineEdit {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #D6D5C9;
+    selection-background-color: #A22C29;
+    selection-color: #FFFFFF;
+}
+
+/* Stile per QComboBox */
+QComboBox {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #D6D5C9;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #902923;
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    selection-background-color: #A22C29;
+    selection-color: #FFFFFF;
+}
+
+/* Stile per QListWidget */
+QListWidget {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    color: #D6D5C9;
+}
+
+QListWidget::item {
+    padding: 10px;
+    border-bottom: 1px solid #902923;
+    background-color: #3A3A3A;
+    color: #D6D5C9;
+    font-size: 14px;
+}
+
+QListWidget::item:selected {
+    background-color: #A22C29;
+    color: #FFFFFF;
+}
+
+/* Stile per QTabWidget e le schede */
+QTabWidget::pane {
+    border: 1px solid #902923;
+    background-color: #3A3A3A;
+    border-radius: 4px;
+}
+
+QTabBar::tab {
+    background: #902923;
+    border: 1px solid #902923;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 2px;
+    font-size: 14px;
+}
+
+QTabBar::tab:selected {
+    background: #3A3A3A;
+    border-bottom-color: #3A3A3A;
+}
+
+QTabBar::tab:!selected:hover {
+    background: #A22C29;
+}
+
+/* Stile per QGroupBox */
+QGroupBox {
+    border: 1px solid #902923;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 10px;
+    padding-top: 20px
+    font-weight: bold;
+    color: #D6D5C9;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 3px 0 3px;
+    background-color: transparent;
+}
+
+/* Stile per QMessageBox */
+QMessageBox {
+    background-color: #902923;
+}
+
+QMessageBox QLabel {
+    color: #D6D5C9;
+    font-size: 14px;
+}
+
+QMessageBox QPushButton {
+    background-color: #A22C29;
+    color: #FFFFFF;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #B9BAA3;
+    color: #0A100D;
+}
+
+QMessageBox QPushButton:pressed {
+    background-color: #D6D5C9;
+    color: #902923;
+}
+
+/* Stile per QRadioButton */
+QRadioButton {
+    spacing: 5px;
+    font-size: 14px;
+    color: #D6D5C9;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+/* Stile per QDateEdit */
+QDateEdit {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #D6D5C9;
+}
+
+QDateEdit::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #902923;
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+QDateEdit QAbstractItemView {
+    background-color: #3A3A3A;
+    border: 1px solid #902923;
+    selection-background-color: #A22C29;
+    selection-color: #FFFFFF;
+}
+
+/* Stile per QDockWidget */
+QDockWidget {
+    titlebar-close-icon: url(:/icons/close.png);
+    titlebar-normal-icon: url(:/icons/undock.png);
+}
+
+QDockWidget::title {
+    background: #902923;
+    padding: 5px;
+    font-size: 14px;
+    color: #D6D5C9;
+}
+
+/* Stile per QToolTip */
+QToolTip {
+    background-color: #3A3A3A;
+    color: #D6D5C9;
+    border: 1px solid #902923;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+/* Stile per QCalendarWidget */
+QCalendarWidget {
+    border: 1px solid #B0B0B0;  /* Bordo neutro */
+    background-color: #F0F0F0;  /* Sfondo leggero neutro */
+    border-radius: 5px;  /* Angoli arrotondati */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* Font chiaro e leggibile */
+    color: #333333;  /* Colore del testo principale */
+}
+
+/* Stile per la parte del mese e dell'anno */
+QCalendarWidget QToolButton {
+    background-color: #E5E5E5;  /* Colore di sfondo dei pulsanti mese/anno */
+    color: #333333;  /* Colore del testo dei pulsanti */
+    border: none;  /* Nessun bordo */
+    border-radius: 4px;  /* Angoli arrotondati */
+    margin: 5px;  /* Margini per il distanziamento */
+    padding: 5px;  /* Padding interno */
+    font-size: 12px;  /* Dimensione del font */
+}
+
+QCalendarWidget QToolButton:hover {
+    background-color: #D0D0D0;  /* Colore di sfondo al passaggio del mouse */
+}
+
+QCalendarWidget QToolButton:pressed {
+    background-color: #C0C0C0;  /* Colore di sfondo quando il pulsante è premuto */
+}
+
+/* Stile per la griglia dei giorni */
+QCalendarWidget QTableView {
+    border: none;  /* Nessun bordo per la griglia */
+    background-color: #FAFAFA;  /* Sfondo leggero neutro */
+    selection-background-color: #A0A0A0;  /* Colore di sfondo quando un giorno è selezionato */
+    selection-color: #FFFFFF;  /* Colore del testo quando un giorno è selezionato */
+}
+
+/* Stile per i giorni della settimana */
+QCalendarWidget QHeaderView::section {
+    background-color: #E0E0E0;  /* Sfondo per i giorni della settimana */
+    color: #333333;  /* Colore del testo per i giorni della settimana */
+    padding: 5px;  /* Padding per il testo */
+    border: none;  /* Nessun bordo */
+    font-weight: bold;  /* Testo in grassetto */
+}
+
+/* Stile per i giorni disabilitati (come i giorni del mese precedente/successivo) */
+QCalendarWidget QAbstractItemView:disabled {
+    color: #B0B0B0;  /* Colore testo disabilitato */
+}
+
+/* Stile per i giorni di oggi */
+QCalendarWidget QTableView::item:selected {
+    background-color: #A0A0A0;  /* Sfondo del giorno selezionato */
+    color: #FFFFFF;  /* Colore del testo del giorno selezionato */
+}
+
+QCalendarWidget QTableView::item:hover {
+    background-color: #C0C0C0;  /* Sfondo al passaggio del mouse su un giorno */
+}
