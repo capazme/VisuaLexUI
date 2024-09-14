@@ -2,3 +2,7 @@
 __pycache__
 *.log
 *.pem
+dist
+build
+*.spec
+.DS_Store

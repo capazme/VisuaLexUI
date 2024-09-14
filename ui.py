@@ -1,21 +1,47 @@
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton, 
-                             QTextEdit, QTabWidget, QFormLayout, QGroupBox, QRadioButton, QComboBox, QButtonGroup, 
-                             QScrollArea, QDateEdit, QListWidget, QListWidgetItem, QMessageBox, QProgressBar, QStatusBar, QDockWidget, QInputDialog, QTextBrowser)
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
+    QTextEdit, QTabWidget, QFormLayout, QGroupBox, QRadioButton, QComboBox, QButtonGroup,
+    QScrollArea, QDateEdit, QListWidget, QListWidgetItem, QMessageBox, QProgressBar, QStatusBar,
+    QDockWidget, QInputDialog, QTextBrowser
+)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QDate, QSettings, QSize
 from PyQt6.QtGui import QFont, QTextOption, QIcon, QPalette, QColor, QAction
 import sys
 import requests
 import re
+import os
+import time
+import logging
+import json
+from requests.exceptions import Timeout, ConnectionError, HTTPError, RequestException
 from functools import lru_cache
 from tools.map import FONTI_PRINCIPALI
-from tools.norma import NormaVisitata 
+from tools.norma import NormaVisitata
 
-# Funzione per caricare il foglio di stile da un file
-def load_stylesheet(file_path):
-    with open(file_path, "r") as file:
-        return file.read()
+# Configura il logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Thread per il fetch dei dati
+def load_stylesheet():
+    # Ottieni il percorso corretto per il file 'style.qss'
+    if getattr(sys, 'frozen', False):
+        # Il percorso per l'esecuzione dell'eseguibile creato da PyInstaller
+        base_path = sys._MEIPASS
+    else:
+        # Il percorso per l'esecuzione durante lo sviluppo
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    # Costruisce il percorso completo per il file di stile
+    stylesheet_path = os.path.join(base_path, 'resources', 'style.qss')
+
+    # Carica e restituisce il file di stile
+    try:
+        with open(stylesheet_path, 'r') as file:
+            stylesheet = file.read()
+        return stylesheet
+    except FileNotFoundError:
+        logging.warning("File di stile non trovato. Procedo senza caricare lo stylesheet.")
+        return ""
+
 class FetchDataThread(QThread):
     data_fetched = pyqtSignal(object)
 
@@ -23,11 +49,15 @@ class FetchDataThread(QThread):
         super().__init__()
         self.url = url
         self.payload = payload
+        self.max_retries = 3  # Numero massimo di tentativi
+        self.timeout = 10  # Timeout per le richieste in secondi
 
     def run(self):
-        try:
-            response = requests.post(self.url, json=self.payload)
-            if response.status_code == 200 and response.json():
+        attempts = 0
+        while attempts < self.max_retries:
+            try:
+                response = requests.post(self.url, json=self.payload, timeout=self.timeout)
+                response.raise_for_status()  # Lancia un'eccezione per codici di stato HTTP 4xx/5xx
                 data = response.json()
                 if 'norma_data' in data:
                     normavisitata = NormaVisitata.from_dict(data['norma_data'])
@@ -35,17 +65,36 @@ class FetchDataThread(QThread):
                     normavisitata._brocardi_info = data.get('brocardi_info', {})
                     self.data_fetched.emit(normavisitata)
                 else:
-                    self.data_fetched.emit({'error': "Errore nella risposta dell'API."})
-            else:
-                self.data_fetched.emit({'error': f"Errore nell'API: {response.status_code}"})
-        except requests.exceptions.RequestException as e:
-            self.data_fetched.emit({'error': str(e)})
+                    error_msg = data.get('error', "Errore nella risposta dell'API.")
+                    self.data_fetched.emit({'error': error_msg})
+                logging.info("Richiesta completata con successo.")
+                return  # Se la richiesta ha successo, esci dal metodo
+            except (Timeout, ConnectionError) as e:
+                attempts += 1
+                logging.warning(f"Tentativo {attempts} fallito: {e}")
+                time.sleep(2)  # Attendi 2 secondi prima di riprovare
+                if attempts == self.max_retries:
+                    self.data_fetched.emit({'error': "Impossibile connettersi al server. Verifica la tua connessione internet."})
+            except HTTPError as e:
+                self.data_fetched.emit({'error': f"Errore HTTP: {e.response.status_code}"})
+                return
+            except json.JSONDecodeError as e:
+                self.data_fetched.emit({'error': "Errore nel decodificare la risposta del server."})
+                return
+            except RequestException as e:
+                self.data_fetched.emit({'error': f"Errore nella richiesta: {str(e)}"})
+                return
+            except Exception as e:
+                logging.error(f"Errore inaspettato: {e}")
+                self.data_fetched.emit({'error': "Si è verificato un errore inaspettato."})
+                return
 
 class NormaViewer(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Visualizzatore di Norme Legali")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 900, 700)
+        self.setWindowIcon(QIcon.fromTheme("text-x-generic"))
 
         # Stato iniziale della modalità scura
         self.is_dark_mode = False
@@ -89,14 +138,14 @@ class NormaViewer(QMainWindow):
         settings_menu = menu_bar.addMenu("Impostazioni")
 
         # Azione per la modalità scura
-        dark_mode_action = QAction("Modalità Scura", self)
+        dark_mode_action = QAction(QIcon.fromTheme("weather-clear-night"), "Modalità Scura", self)
         dark_mode_action.setCheckable(True)
         dark_mode_action.setChecked(self.is_dark_mode)
         dark_mode_action.triggered.connect(self.toggle_dark_mode)
         settings_menu.addAction(dark_mode_action)
 
         # Azione per modificare l'URL dell'API
-        api_url_action = QAction("Modifica URL API", self)
+        api_url_action = QAction(QIcon.fromTheme("network-wired"), "Modifica URL API", self)
         api_url_action.triggered.connect(self.change_api_url)
         settings_menu.addAction(api_url_action)
 
@@ -145,12 +194,17 @@ class NormaViewer(QMainWindow):
         self.act_type_input = QComboBox()
         self.act_type_input.addItems(FONTI_PRINCIPALI)
         self.act_type_input.currentIndexChanged.connect(self.update_input_fields)
+        self.act_type_input.setToolTip("Seleziona il tipo di atto legislativo da cercare.")
         search_layout.addRow("Tipo di Atto:", self.act_type_input)
 
         # Campi di input aggiuntivi (data, numero atto, numero articolo)
         self.date_input = QLineEdit()
+        self.date_input.setPlaceholderText("dd/mm/yyyy")
+        self.date_input.setToolTip("Inserisci la data dell'atto nel formato gg/mm/aaaa.")
         self.act_number_input = QLineEdit()
+        self.act_number_input.setToolTip("Inserisci il numero dell'atto legislativo.")
         self.article_input = QLineEdit()
+        self.article_input.setToolTip("Inserisci il numero dell'articolo da cercare.")
         search_layout.addRow("Data:", self.date_input)
         search_layout.addRow("Numero Atto:", self.act_number_input)
         search_layout.addRow("Numero Articolo:", self.article_input)
@@ -162,6 +216,8 @@ class NormaViewer(QMainWindow):
         self.version_group.addButton(self.version_originale)
         self.version_group.addButton(self.version_vigente)
         self.version_vigente.setChecked(True)
+        self.version_originale.setToolTip("Seleziona per cercare la versione originale dell'atto.")
+        self.version_vigente.setToolTip("Seleziona per cercare la versione vigente dell'atto.")
 
         # Input per la data di vigenza
         self.vigency_date_input = QDateEdit()
@@ -169,6 +225,7 @@ class NormaViewer(QMainWindow):
         self.vigency_date_input.setDisplayFormat("dd/MM/yyyy")
         self.vigency_date_input.setDate(QDate.currentDate())
         self.vigency_date_input.setEnabled(self.version_vigente.isChecked())
+        self.vigency_date_input.setToolTip("Seleziona la data di vigenza per la versione vigente.")
         self.version_group.buttonToggled.connect(self.toggle_vigency_date)
 
         # Layout per i bottoni di versione
@@ -181,7 +238,8 @@ class NormaViewer(QMainWindow):
         # Pulsante di ricerca
         self.search_button = QPushButton("Cerca Norma")
         self.search_button.clicked.connect(self.on_search_button_clicked)
-        self.search_button.setIcon(QIcon("search_icon.png"))  # Aggiungi un'icona di ricerca
+        self.search_button.setIcon(QIcon.fromTheme("edit-find"))
+        self.search_button.setToolTip("Clicca per avviare la ricerca della norma.")
         search_layout.addRow(self.search_button)
 
         # Barra di caricamento per la ricerca
@@ -216,6 +274,7 @@ class NormaViewer(QMainWindow):
         self.norma_info_button = QPushButton("Informazioni sulla Norma")
         self.norma_info_button.setCheckable(True)
         self.norma_info_button.setChecked(False)
+        self.norma_info_button.setToolTip("Mostra o nascondi le informazioni dettagliate sulla norma.")
         self.norma_info_button.clicked.connect(self.toggle_norma_info)
 
         self.norma_info_widget = QWidget()
@@ -228,12 +287,12 @@ class NormaViewer(QMainWindow):
         self.tipo_atto_label = QLabel()
         self.data_label = QLabel()
         self.numero_atto_label = QLabel()
-        
+
         info_layout.addRow("URN:", self.urn_label)
         info_layout.addRow("Tipo di Atto:", self.tipo_atto_label)
         info_layout.addRow("Data:", self.data_label)
         info_layout.addRow("Numero Atto:", self.numero_atto_label)
-        
+
         self.norma_info_widget.setLayout(info_layout)
         self.norma_info_widget.setVisible(False)
 
@@ -242,11 +301,12 @@ class NormaViewer(QMainWindow):
 
     def toggle_norma_info(self):
         self.norma_info_widget.setVisible(self.norma_info_button.isChecked())
-    
+
     def create_brocardi_dock_widget(self):
         # Creazione del Dock Widget per i Brocardi
         self.brocardi_dock = QDockWidget("Informazioni Brocardi", self)
         self.brocardi_dock.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea | Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.brocardi_dock.setWindowIcon(QIcon.fromTheme("help-browser"))
 
         # Widget contenitore
         self.brocardi_info_widget = QWidget()
@@ -277,10 +337,11 @@ class NormaViewer(QMainWindow):
         self.brocardi_toggle_button = QPushButton("Mostra/Nascondi Brocardi")
         self.brocardi_toggle_button.setCheckable(True)
         self.brocardi_toggle_button.setChecked(False)
+        self.brocardi_toggle_button.setToolTip("Mostra o nascondi le informazioni sui brocardi.")
         self.brocardi_toggle_button.clicked.connect(self.toggle_brocardi_dock)
         self.brocardi_toggle_button.setVisible(False)  # Nascondi il pulsante inizialmente
 
-        # Aggiungi il pulsante al layout
+        # Aggiungi il pulsante alla barra di stato
         self.status_bar.addPermanentWidget(self.brocardi_toggle_button)
 
     def toggle_brocardi_dock(self):
@@ -309,12 +370,13 @@ class NormaViewer(QMainWindow):
         # Pulsante per copiare tutte le informazioni
         copy_all_button = QPushButton("Copia Tutte le Informazioni")
         copy_all_button.clicked.connect(self.copy_all_norma_info)
-        copy_all_button.setIcon(QIcon("copy_icon.png"))  # Aggiunta di un'icona di copia
+        copy_all_button.setIcon(QIcon.fromTheme("edit-copy"))
+        copy_all_button.setToolTip("Copia tutte le informazioni visualizzate negli appunti.")
         text_layout.addWidget(copy_all_button)
 
         text_group.setLayout(text_layout)
         layout.addWidget(text_group)
-    
+
     def copy_all_norma_info(self):
         """
         Copia tutte le informazioni della norma, inclusi i brocardi e le massime selezionate, la ratio, la spiegazione e il testo dell'articolo.
@@ -347,7 +409,6 @@ class NormaViewer(QMainWindow):
 
         # Mostra notifica
         QMessageBox.information(self, "Informazione Copiata", "Tutte le informazioni selezionate sono state copiate negli appunti.")
-
 
     def get_brocardi_info_as_text(self, seleziona_solo=False):
         """
@@ -445,6 +506,9 @@ class NormaViewer(QMainWindow):
         return text_edit.toPlainText()
 
     def on_search_button_clicked(self):
+        # Disabilita il pulsante di ricerca
+        self.search_button.setEnabled(False)
+
         # Estrai i dati di input
         act_type = self.act_type_input.currentText()
         date = self.date_input.text().strip()
@@ -456,6 +520,7 @@ class NormaViewer(QMainWindow):
         # Validazione degli input con feedback
         if not act_type:
             QMessageBox.warning(self, "Errore di Input", "Il campo 'Tipo di Atto' è obbligatorio.")
+            self.search_button.setEnabled(True)
             return
 
         # Crea i dati di richiesta e avvia un thread di fetch
@@ -473,6 +538,7 @@ class NormaViewer(QMainWindow):
         cached_result = self.get_cached_data(cache_key)
         if cached_result:
             self.display_data(cached_result)
+            self.search_button.setEnabled(True)
             return
 
         # Mostra la barra di caricamento
@@ -483,15 +549,21 @@ class NormaViewer(QMainWindow):
         self.thread.data_fetched.connect(lambda data: self.handle_data_fetch(data, cache_key))
         self.thread.start()
 
+        logging.info("Ricerca avviata.")
+
     def handle_data_fetch(self, normavisitata, cache_key):
+        # Riemetti il pulsante di ricerca
+        self.search_button.setEnabled(True)
         # Nascondi la barra di caricamento dopo aver caricato i dati
         self.search_progress_bar.setVisible(False)
-        
+
         # Caching dei dati
         self.cache_data(cache_key, normavisitata)
 
         # Visualizza i dati
         self.display_data(normavisitata)
+
+        logging.info("Dati ricevuti dal thread di fetch.")
 
     def display_data(self, normavisitata):
         self.clear_dynamic_tabs()
@@ -501,36 +573,36 @@ class NormaViewer(QMainWindow):
             QMessageBox.critical(self, "Errore", normavisitata['error'])
             return
 
-        # Populate interface with fetched data
+        # Popola l'interfaccia con i dati ricevuti
         self.urn_label.setText(f'<a href="{normavisitata.urn}">{normavisitata.urn}</a>')
         self.tipo_atto_label.setText(normavisitata.tipo_atto_str)
         self.data_label.setText(normavisitata.data)
         self.numero_atto_label.setText(normavisitata.numero_atto)
 
-        # Clean up and display the text
+        # Pulisce e visualizza il testo
         cleaned_text = re.sub(r'\n\s*\n', '\n', normavisitata._article_text.strip()) if normavisitata._article_text else ''
         self.norma_text_edit.setText(cleaned_text)
 
-        # Dynamically load Brocardi info if available
+        # Carica dinamicamente le informazioni sui Brocardi se disponibili
         brocardi_info = normavisitata._brocardi_info
         if brocardi_info.get('position') and brocardi_info['position'] != "Not Available":
             self.position_label.setText(brocardi_info['position'])
             self.brocardi_link_label.setText(f'<a href="{brocardi_info["link"]}">{brocardi_info["link"]}</a>')
 
-            # Show button and dock widget for Brocardi
+            # Mostra il pulsante e il dock widget per i Brocardi
             self.brocardi_toggle_button.setVisible(True)
             self.brocardi_toggle_button.setChecked(True)
             self.brocardi_dock.show()
 
-            # Handle dynamic sections
+            # Gestisce le sezioni dinamiche
             for section_name, content in brocardi_info.get('info', {}).items():
                 if section_name in ['Brocardi', 'Massime'] and content:
                     tab = QWidget()
                     list_widget = QListWidget()
                     list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
-                    list_widget.setStyleSheet("QListWidget::item { border: 1px solid #4E878C; margin: 4px; padding: 8px; }")  # Improve item style
+                    list_widget.setStyleSheet("QListWidget::item { border: 1px solid #4E878C; margin: 4px; padding: 8px; }")  # Migliora lo stile degli item
 
-                    # Use create_list_item method to add items with QLabel inside
+                    # Usa il metodo create_collapsible_list_item per aggiungere gli elementi
                     for item_text in content:
                         item_text = re.sub(r'“|”', '', item_text) if section_name == 'Brocardi' else re.sub(r'\s+', ' ', item_text.strip())
                         self.create_collapsible_list_item(item_text, list_widget)
@@ -546,15 +618,14 @@ class NormaViewer(QMainWindow):
                     self.create_tab(tab, section_name, text_edit)
                     self.dynamic_tabs[section_name] = tab
         else:
-            # Hide button and dock widget if no Brocardi information is available
+            # Nascondi il pulsante e il dock widget se non ci sono informazioni sui Brocardi
             self.brocardi_toggle_button.setChecked(False)
             self.brocardi_toggle_button.setVisible(False)
             self.brocardi_dock.hide()
 
     def create_collapsible_list_item(self, text, parent_widget):
         """
-        Crea un elemento QListWidgetItem con un QTextBrowser all'interno di una QScrollArea
-        per gestire il testo lungo senza pulsanti extra. Gestisce separatamente i riempitivi.
+        Crea un elemento QListWidgetItem con un QTextBrowser all'interno per gestire il testo lungo.
         """
         if not text.strip():  # Verifica se l'elemento è un riempitivo (stringa vuota o solo spazi)
             # Crea un riempitivo senza widget aggiuntivi
@@ -580,23 +651,10 @@ class NormaViewer(QMainWindow):
 
         # Aggiungi QTextBrowser al layout
         layout.addWidget(text_browser)
-        
+
         item_widget.setLayout(layout)
         item.setSizeHint(item_widget.sizeHint())  # Assicurati che l'elemento abbia la dimensione corretta
         parent_widget.setItemWidget(item, item_widget)  # Imposta il widget come item di QListWidget
-        def toggle_expand_text(self, button, text_edit):
-            """
-            Espande o collassa il testo in un QTextEdit.
-            """
-            if button.isChecked():
-                text_edit.setFixedHeight(150)  # Imposta un'altezza maggiore per mostrare più testo
-                text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)  # Abilita scroll
-                button.setText("Mostra Meno")
-            else:
-                text_edit.setFixedHeight(50)  # Altezza predefinita per il testo collassato
-                text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scroll
-                button.setText("Mostra Altro")
-            text_edit.updateGeometry()  # Forza un aggiornamento della geometria del QTextEdit
 
     def create_tab(self, tab, title, widget):
         tab_layout = QVBoxLayout()
@@ -617,8 +675,9 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # Carica e applica il foglio di stile
-    stylesheet = load_stylesheet("style.qss")  # Assicurati che il file si trovi nella stessa directory
-    app.setStyleSheet(stylesheet)
+    stylesheet = load_stylesheet()  # Assicurati che il file si trovi nella directory corretta
+    if stylesheet:
+        app.setStyleSheet(stylesheet)
 
     viewer = NormaViewer()
     viewer.show()

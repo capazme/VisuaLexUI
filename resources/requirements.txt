@@ -5,3 +5,4 @@ structlog
 selenium
 chromium
 PyQt6
+pyinstaller
