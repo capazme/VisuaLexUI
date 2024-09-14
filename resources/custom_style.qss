@@ -70,6 +70,19 @@ QTextEdit {{
     selection-color: {selection_text_color};
 }}
 
+/* Stile per QTextBrowser */
+QTextBrowser {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    font-family: 'Georgia', monospace;
+    font-size: {font_size}px;
+    padding: 10px;
+    border-radius: 4px;
+    color: {text_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
 /* Stile per QComboBox */
 QComboBox {{
     background-color: {input_background_color};
@@ -158,7 +171,6 @@ QGroupBox::title {{
     subcontrol-origin: margin;
     subcontrol-position: top left;
     left: 10px;
-    padding-top: 20px
     padding: 0 3px 0 3px;
     background-color: transparent;
 }}
@@ -233,6 +245,147 @@ QColorDialog QPushButton:hover {{
 
 QColorDialog QPushButton:pressed {{
     background-color: {button_pressed_color};
+}}
+
+/* Stile per QDateEdit */
+QDateEdit {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    padding: 5px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+    color: {text_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
+QDateEdit::drop-down {{
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: {border_color};
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}}
+
+QDateEdit QAbstractItemView {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
+/* Stile per QProgressBar */
+QProgressBar {{
+    border: 1px solid {border_color};
+    border-radius: 4px;
+    text-align: center;
+    background: {background_color};
+    height: 16px;
+    font-size: 12px;
+    color: {text_color};
+}}
+
+QProgressBar::chunk {{
+    background-color: {button_background_color};
+    width: 20px;
+    border-radius: 4px;
+}}
+
+/* Stile per QToolButton */
+QToolButton {{
+    background-color: {button_background_color};
+    color: {button_text_color};
+    border: 1px solid {border_color};
+    border-radius: 4px;
+    padding: 5px;
+}}
+
+QToolButton:hover {{
+    background-color: {button_hover_color};
+}}
+
+QToolButton:pressed {{
+    background-color: {button_pressed_color};
+}}
+
+/* Stile per QDockWidget */
+QDockWidget {{
+    background-color: {background_color};
+    border: 1px solid {border_color};
+}}
+
+QDockWidget::title {{
+    background: {border_color};
+    padding: 5px;
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+/* Stile per QScrollArea */
+QScrollArea {{
+    border: 1px solid {border_color};
+    background-color: {background_color};
+}}
+
+/* Stile per QCalendarWidget */
+QCalendarWidget {{
+    border: 1px solid {border_color};
+    background-color: {input_background_color};
+    border-radius: 5px;
+    color: {text_color};
+}}
+
+QCalendarWidget QToolButton {{
+    background-color: {button_background_color};
+    color: {button_text_color};
+    border: 1px solid {border_color};
+    border-radius: 4px;
+    margin: 2px;
+    padding: 4px;
+    font-size: 12px;
+}}
+
+QCalendarWidget QToolButton:hover {{
+    background-color: {button_hover_color};
+    color: {button_text_color};
+}}
+
+QCalendarWidget QToolButton:pressed {{
+    background-color: {button_pressed_color};
+    color: {button_text_color};
+}}
+
+QCalendarWidget QTableView {{
+    border: none;
+    background-color: {input_background_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+    gridline-color: {border_color};
+}}
+
+QCalendarWidget QHeaderView::section {{
+    background-color: {background_color};
+    color: {text_color};
+    padding: 5px;
+    border: none;
+    font-weight: bold;
+}}
+
+QCalendarWidget QAbstractItemView:disabled {{
+    color: {button_disabled_color};
+}}
+
+QCalendarWidget QTableView::item:selected {{
+    background-color: {selection_background_color};
+    color: {selection_text_color};
+}}
+
+QCalendarWidget QTableView::item:hover {{
+    background-color: {button_hover_color};
+    color: {button_text_color};
 }}
 
 /* Stile per ThemeDialog */
@@ -315,8 +468,3 @@ ThemeDialog QSpinBox {{
     font-size: {font_size}px;
     color: {text_color};
 }}
-
-
-/* Altri stili per eventuali widget aggiuntivi */
-/* ... */
-
