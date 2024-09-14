@@ -19,6 +19,10 @@ from tools.map import FONTI_PRINCIPALI
 from tools.norma import NormaVisitata
 from tools.themes import ThemeDialog
 from tools.config import THEMES
+import tufup
+
+with open('version.txt', 'r') as f:
+    CURRENT_VERSION = f.read()
 
 # Configura il logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -80,6 +84,16 @@ class NormaViewer(QMainWindow):
         # Caricamento delle impostazioni
         self.settings = QSettings("NormaApp", "NormaViewer")
         self.load_settings()
+
+        tufup.init({
+            'repository_url': 'https://github.com/capazme/VisuaLexUI/releases/latest/download/',  # URL per le release GitHub
+            'local_directory': './.updates',  # Directory locale per scaricare gli aggiornamenti
+            'target_name': 'VisuaLexUI-{version}.tar.gz'  # Nome del pacchetto di aggiornamento con segnaposto per la versione
+        })
+
+        # Controlla gli aggiornamenti all'avvio dell'applicazione
+        self.check_for_updates()
+
 
         # Memorizzazione dell'URL API
         self.api_url = self.settings.value("api_url", "https://example-default-url.ngrok-free.app")  # URL di default
@@ -159,7 +173,6 @@ class NormaViewer(QMainWindow):
                 self.apply_predefined_theme(self.current_theme)
                 self.settings.setValue("theme", self.current_theme)
 
-
     def change_api_url(self):
         # Mostra un dialogo per l'input dell'URL
         new_url, ok = QInputDialog.getText(self, "Modifica URL API", "Inserisci il nuovo URL dell'API:")
@@ -167,7 +180,6 @@ class NormaViewer(QMainWindow):
             self.api_url = new_url
             self.settings.setValue("api_url", self.api_url)
             QMessageBox.information(self, "URL Aggiornato", "L'URL dell'API è stato aggiornato correttamente.")
-
 
     def toggle_dark_mode(self, checked):
         self.is_dark_mode = checked
@@ -712,7 +724,6 @@ class NormaViewer(QMainWindow):
         else:
             QMessageBox.warning(self, "Errore", "Impossibile applicare il tema personalizzato.")
 
-
     def apply_predefined_theme(self, theme_name):
         stylesheet = self.load_stylesheet(theme_name)
         if stylesheet:
@@ -819,6 +830,25 @@ class NormaViewer(QMainWindow):
         Resetta il foglio di stile corrente per evitare sovrapposizioni.
         """
         self.setStyleSheet("")
+
+    def check_for_updates(self):
+        try:
+            update = tufup.check_for_updates(current_version=CURRENT_VERSION)
+            if update:
+                reply = QMessageBox.question(self, "Aggiornamento Disponibile",
+                                             f"Un nuovo aggiornamento ({update['version']}) è disponibile. Vuoi scaricarlo e installarlo?",
+                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if reply == QMessageBox.StandardButton.Yes:
+                    tufup.apply_update(update)  # Applica l'aggiornamento
+                    QMessageBox.information(self, "Aggiornamento Applicato", "L'applicazione è stata aggiornata. Riavvia per applicare le modifiche.")
+                    sys.exit()  # Esci e riavvia l'applicazione
+            else:
+                logging.info("L'applicazione è già aggiornata.")
+        except Exception as e:
+            logging.error(f"Errore durante il controllo degli aggiornamenti: {e}")
+            QMessageBox.critical(self, "Errore Aggiornamento", "Si è verificato un errore durante il controllo degli aggiornamenti.")
+
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)

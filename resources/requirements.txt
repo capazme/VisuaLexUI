@@ -6,3 +6,4 @@ selenium
 chromium
 PyQt6
 pyinstaller
+tufup

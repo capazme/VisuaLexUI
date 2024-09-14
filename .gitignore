@@ -6,3 +6,6 @@ dist
 build
 *.spec
 .DS_Store
+release_tar.sh
+*.tar.gz
+releases
