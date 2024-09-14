@@ -1,0 +1,322 @@
+/* custom_style.qss */
+
+/* Custom Theme */
+
+/* Stile globale */
+* {{
+    font-family: 'Georgia', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: {font_size}px;
+    color: {text_color};  /* Colore principale del testo */
+}}
+
+/* Stile per la finestra principale */
+QMainWindow {{
+    background-color: {background_color};  /* Colore di sfondo principale */
+    border: none;
+}}
+
+/* Stile per i pulsanti */
+QPushButton {{
+    background-color: {button_background_color};
+    color: {button_text_color};
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+}}
+
+QPushButton:hover {{
+    background-color: {button_hover_color};
+}}
+
+QPushButton:pressed {{
+    background-color: {button_pressed_color};
+}}
+
+QPushButton:disabled {{
+    background-color: {button_disabled_color};
+    color: {button_text_color};
+}}
+
+/* Stile per le etichette */
+QLabel {{
+    font-size: {font_size}px;
+    color: {text_color};
+    padding: 2px;
+}}
+
+/* Stile per QLineEdit */
+QLineEdit {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+    color: {text_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
+/* Stile per QTextEdit */
+QTextEdit {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    font-family: 'Georgia', monospace;
+    font-size: {font_size}px;
+    padding: 10px;
+    border-radius: 4px;
+    color: {text_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
+/* Stile per QComboBox */
+QComboBox {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    padding: 5px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+QComboBox::drop-down {{
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: {border_color};
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}}
+
+QComboBox QAbstractItemView {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
+/* Stile per QListWidget */
+QListWidget {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    color: {text_color};
+}}
+
+QListWidget::item {{
+    padding: 10px;
+    border-bottom: 1px solid {border_color};
+    background-color: {input_background_color};
+    color: {text_color};
+    font-size: {font_size}px;
+}}
+
+QListWidget::item:selected {{
+    background-color: {selection_background_color};
+    color: {selection_text_color};
+}}
+
+/* Stile per QTabWidget e QTabBar */
+QTabWidget::pane {{
+    border: 1px solid {border_color};
+    background-color: {background_color};
+    border-radius: 4px;
+}}
+
+QTabBar::tab {{
+    background: {border_color};
+    border: 1px solid {border_color};
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 2px;
+    font-size: {font_size}px;
+}}
+
+QTabBar::tab:selected {{
+    background: {input_background_color};
+    border-bottom-color: {input_background_color};
+}}
+
+QTabBar::tab:!selected:hover {{
+    background: {button_hover_color};
+}}
+
+/* Stile per QGroupBox */
+QGroupBox {{
+    border: 1px solid {border_color};
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 10px;
+    padding-top: 20px;
+    font-weight: bold;
+    color: {text_color};
+}}
+
+QGroupBox::title {{
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding-top: 20px
+    padding: 0 3px 0 3px;
+    background-color: transparent;
+}}
+
+/* Stile per QMessageBox */
+QMessageBox {{
+    background-color: {background_color};
+}}
+
+QMessageBox QLabel {{
+    color: {text_color};
+    font-size: {font_size}px;
+}}
+
+QMessageBox QPushButton {{
+    background-color: {button_background_color};
+    color: {button_text_color};
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+}}
+
+QMessageBox QPushButton:hover {{
+    background-color: {button_hover_color};
+}}
+
+QMessageBox QPushButton:pressed {{
+    background-color: {button_pressed_color};
+    color: {button_text_color};
+}}
+
+/* Stile per QRadioButton */
+QRadioButton {{
+    spacing: 5px;
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+QRadioButton::indicator {{
+    width: 18px;
+    height: 18px;
+}}
+
+/* Stile per QSpinBox */
+QSpinBox {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+/* Stile per QColorDialog */
+QColorDialog {{
+    background-color: {background_color};
+    color: {text_color};
+}}
+
+QColorDialog QPushButton {{
+    background-color: {button_background_color};
+    color: {button_text_color};
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+}}
+
+QColorDialog QPushButton:hover {{
+    background-color: {button_hover_color};
+}}
+
+QColorDialog QPushButton:pressed {{
+    background-color: {button_pressed_color};
+}}
+
+/* Stile per ThemeDialog */
+ThemeDialog {{
+    background-color: {background_color};
+    color: {text_color};
+}}
+
+ThemeDialog QLabel {{
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+ThemeDialog QGroupBox {{
+    border: 1px solid {border_color};
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 10px;
+    padding-top: 20px;
+    font-weight: bold;
+    color: {text_color};
+}}
+
+ThemeDialog QGroupBox::title {{
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 3px 0 3px;
+    background-color: transparent;
+}}
+
+ThemeDialog QPushButton {{
+    background-color: {button_background_color};
+    color: {button_text_color};
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+}}
+
+ThemeDialog QPushButton:hover {{
+    background-color: {button_hover_color};
+}}
+
+ThemeDialog QPushButton:pressed {{
+    background-color: {button_pressed_color};
+}}
+
+ThemeDialog QComboBox {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    padding: 5px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+ThemeDialog QComboBox::drop-down {{
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: {border_color};
+    border-left-style: solid;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}}
+
+ThemeDialog QComboBox QAbstractItemView {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    selection-background-color: {selection_background_color};
+    selection-color: {selection_text_color};
+}}
+
+ThemeDialog QSpinBox {{
+    background-color: {input_background_color};
+    border: 1px solid {border_color};
+    padding: 5px;
+    border-radius: 4px;
+    font-size: {font_size}px;
+    color: {text_color};
+}}
+
+
+/* Altri stili per eventuali widget aggiuntivi */
+/* ... */
+

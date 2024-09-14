@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QDockWidget, QInputDialog, QTextBrowser
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QDate, QSettings, QSize
-from PyQt6.QtGui import QFont, QTextOption, QIcon, QPalette, QColor, QAction
+from PyQt6.QtGui import QFont, QTextOption, QIcon, QAction, QColor
 import sys
 import requests
 import re
@@ -15,49 +15,13 @@ import logging
 import json
 from requests.exceptions import Timeout, ConnectionError, HTTPError, RequestException
 from functools import lru_cache
-from tools.config import THEMES
 from tools.map import FONTI_PRINCIPALI
 from tools.norma import NormaVisitata
+from tools.themes import ThemeDialog
+from tools.config import THEMES
 
 # Configura il logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def load_stylesheet(theme_name):
-    """
-    Carica il foglio di stile in base al tema selezionato.
-
-    Args:
-        theme_name (str): Nome del tema selezionato.
-
-    Returns:
-        str: Contenuto del foglio di stile.
-    """
-    # Ottieni il percorso corretto per il file di stile
-    try:
-        # Se l'applicazione è eseguita come un eseguibile PyInstaller
-        if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
-        else:
-            base_path = os.path.dirname(os.path.abspath(__file__))
-
-        # Percorso della cartella resources
-        resources_path = os.path.join(base_path, 'resources')
-
-        # Trova il file .qss corrispondente al tema
-        stylesheet_file = THEMES.get(theme_name, "blu_light_style.qss")  # Default a blu_light_style.qss se non trovato
-        stylesheet_path = os.path.join(resources_path, stylesheet_file)
-
-        # Carica e restituisce il file di stile
-        with open(stylesheet_path, 'r') as file:
-            stylesheet = file.read()
-        logging.info(f"Caricato foglio di stile: {stylesheet_file}")
-        return stylesheet
-    except FileNotFoundError:
-        logging.warning(f"File di stile {stylesheet_file} non trovato. Procedo senza caricare lo stylesheet.")
-        return ""
-    except Exception as e:
-        logging.error(f"Errore nel caricamento del foglio di stile: {e}")
-        return ""
 
 class FetchDataThread(QThread):
     data_fetched = pyqtSignal(object)
@@ -113,9 +77,6 @@ class NormaViewer(QMainWindow):
         self.setGeometry(100, 100, 900, 700)
         self.setWindowIcon(QIcon.fromTheme("text-x-generic"))
 
-        # Stato iniziale della modalità scura
-        self.is_dark_mode = False
-
         # Caricamento delle impostazioni
         self.settings = QSettings("NormaApp", "NormaViewer")
         self.load_settings()
@@ -127,7 +88,7 @@ class NormaViewer(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
-        # Menu per la modalità scura e modifica URL API
+        # Menu per la modifica URL API e personalizzazione del tema
         self.create_menu()
 
         # Layout principale
@@ -136,7 +97,7 @@ class NormaViewer(QMainWindow):
         # Creazione e configurazione delle sezioni UI
         self.create_search_input_section(main_layout)
         self.create_collapsible_norma_info_section(main_layout)
-        self.create_brocardi_dock_widget()  # Crea il dock widget per i brocardi
+        self.create_brocardi_dock_widget()
         self.create_resizable_norma_text_section(main_layout)
 
         # Imposta il widget centrale
@@ -147,8 +108,6 @@ class NormaViewer(QMainWindow):
         # Cache per risultati di ricerca
         self.search_cache = {}
 
-
-
     def create_menu(self):
         # Barra dei menu
         menu_bar = self.menuBar()
@@ -156,30 +115,50 @@ class NormaViewer(QMainWindow):
         # Menu per le impostazioni
         settings_menu = menu_bar.addMenu("Impostazioni")
 
-        # Azione per la modalità scura
-        """ dark_mode_action = QAction(QIcon.fromTheme("weather-clear-night"), "Modalità Scura", self)
-        dark_mode_action.setCheckable(True)
-        dark_mode_action.setChecked(self.is_dark_mode)
-        dark_mode_action.triggered.connect(self.toggle_dark_mode)
-        settings_menu.addAction(dark_mode_action) """
-
         # Azione per modificare l'URL dell'API
         api_url_action = QAction(QIcon.fromTheme("network-wired"), "Modifica URL API", self)
         api_url_action.triggered.connect(self.change_api_url)
         settings_menu.addAction(api_url_action)
 
-        # Sottomenu per selezionare il tema
-        theme_menu = settings_menu.addMenu("Seleziona Tema")
+        # Aggiungi azione per la personalizzazione del tema
+        theme_customize_action = QAction("Personalizza Tema", self)
+        theme_customize_action.triggered.connect(self.open_theme_dialog)
+        settings_menu.addAction(theme_customize_action)
+  
+    def open_theme_dialog(self):
+        # Carica il tema personalizzato dalle impostazioni se disponibile
+        if self.current_theme == "Personalizzato":
+            custom_theme = self.settings.value("custom_theme", {})
+            if custom_theme:
+                # Assicurati che i tipi siano corretti
+                custom_theme = {
+                    'font_size': int(custom_theme.get('font_size', 14)),
+                    'colors': custom_theme.get('colors', ['#FFFFFF', '#000000', '#CCCCCC', '#000000'])
+                }
+                self.custom_theme = custom_theme
+        else:
+            self.custom_theme = None
 
-        # Aggiungi opzioni di tema
-        self.theme_actions = {}  # Dizionario per salvare le azioni dei temi
-        for theme_name in THEMES.keys():
-            theme_action = QAction(theme_name, self)
-            theme_action.setCheckable(True)
-            theme_action.setChecked(self.current_theme == theme_name)
-            theme_action.triggered.connect(lambda checked, name=theme_name: self.change_theme(name))
-            theme_menu.addAction(theme_action)
-            self.theme_actions[theme_name] = theme_action
+        # Passa i temi come variabile locale, non come attributo di istanza
+        themes = {}  # Vuoto o riempi con temi predefiniti se necessario
+
+        dialog = ThemeDialog(self, themes=themes, current_theme=self.current_theme, custom_theme=self.custom_theme)
+        if dialog.exec():
+            selected_theme = dialog.get_selected_theme()
+            if isinstance(selected_theme, dict):
+                # Applica il tema personalizzato
+                self.custom_theme = selected_theme
+                self.current_theme = "Personalizzato"
+                self.apply_custom_theme(self.custom_theme)
+                self.settings.setValue("theme", self.current_theme)
+                self.settings.setValue("custom_theme", self.custom_theme)
+            else:
+                # Applica il tema predefinito
+                self.current_theme = selected_theme
+                self.custom_theme = None
+                self.apply_predefined_theme(self.current_theme)
+                self.settings.setValue("theme", self.current_theme)
+
 
     def change_api_url(self):
         # Mostra un dialogo per l'input dell'URL
@@ -188,6 +167,7 @@ class NormaViewer(QMainWindow):
             self.api_url = new_url
             self.settings.setValue("api_url", self.api_url)
             QMessageBox.information(self, "URL Aggiornato", "L'URL dell'API è stato aggiornato correttamente.")
+
 
     def toggle_dark_mode(self, checked):
         self.is_dark_mode = checked
@@ -205,19 +185,16 @@ class NormaViewer(QMainWindow):
         self.settings.setValue("dark_mode", self.is_dark_mode)
 
     def load_settings(self):
-        # Carica le impostazioni salvate
-        self.is_dark_mode = self.settings.value("dark_mode", False, type=bool)
-        self.current_theme = self.settings.value("theme", "Blue Light")
-        
-        # Carica il foglio di stile corrispondente al tema salvato
-        stylesheet = load_stylesheet(self.current_theme)
-        if stylesheet:
-            self.setStyleSheet(stylesheet)
-
-        # Imposta la modalità scura se abilitata
-        if self.is_dark_mode:
-            self.toggle_dark_mode(True)
-
+        self.current_theme = self.settings.value("theme", "Personalizzato")
+        custom_theme = self.settings.value("custom_theme", {})
+        if custom_theme:
+            custom_theme = {
+                'font_size': int(custom_theme['font_size']),
+                'colors': custom_theme['colors']
+            }
+            self.custom_theme = custom_theme
+            self.apply_custom_theme(self.custom_theme)
+            
     def create_search_input_section(self, layout):
         search_group = QGroupBox("Ricerca Normativa")
         search_layout = QFormLayout()
@@ -702,27 +679,137 @@ class NormaViewer(QMainWindow):
     def clear_dynamic_tabs(self):
         self.tabs.clear()
         self.dynamic_tabs.clear()
+    
+    def load_stylesheet(self, theme_name):
+        try:
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.dirname(os.path.abspath(__file__))
 
+            resources_path = os.path.join(base_path, 'resources')
+            stylesheet_file = THEMES.get(theme_name)
+            if not stylesheet_file:
+                logging.error(f"Tema '{theme_name}' non trovato.")
+                return ""
+
+            stylesheet_path = os.path.join(resources_path, stylesheet_file)
+            with open(stylesheet_path, 'r', encoding='utf-8') as file:
+                stylesheet = file.read()
+
+            return stylesheet
+        except FileNotFoundError:
+            logging.error(f"File {stylesheet_file} non trovato nella cartella resources.")
+            return ""
+        except Exception as e:
+            logging.error(f"Errore nel caricamento del foglio di stile '{theme_name}': {e}")
+            return ""
+        
+    def apply_custom_theme(self, custom_theme):
+        stylesheet = self.generate_custom_stylesheet(custom_theme)
+        if stylesheet:
+            self.setStyleSheet(stylesheet)
+        else:
+            QMessageBox.warning(self, "Errore", "Impossibile applicare il tema personalizzato.")
+
+
+    def apply_predefined_theme(self, theme_name):
+        stylesheet = self.load_stylesheet(theme_name)
+        if stylesheet:
+            self.setStyleSheet(stylesheet)
+        else:
+            QMessageBox.warning(self, "Errore", f"Impossibile caricare il tema '{theme_name}'.")
+
+    def generate_custom_stylesheet(self, custom_theme):
+        # Load stylesheet template
+        stylesheet_template = self.load_custom_stylesheet_template()
+        if not stylesheet_template:
+            return ""
+
+        # Map user-selected colors
+        font_size = custom_theme['font_size']
+        colors = custom_theme['colors']
+
+        background_color = colors[0]  # Background color
+        text_color = colors[1]        # Text color
+        button_bg_color = colors[2]   # Button background color
+        button_text_color = colors[3] # Button text color
+
+        # Compute additional colors
+        button_hover_color = self.adjust_color(button_bg_color, 20)
+        button_pressed_color = self.adjust_color(button_bg_color, -20)
+        button_disabled_color = self.adjust_color(button_bg_color, -40)
+        border_color = self.adjust_color(text_color, -40)
+        input_bg_color = self.adjust_color(background_color, 10)
+        selection_bg_color = self.adjust_color(button_bg_color, 30)
+        selection_text_color = button_text_color
+
+        style_values = {
+            'font_size': font_size,
+            'background_color': background_color,
+            'text_color': text_color,
+            'button_background_color': button_bg_color,
+            'button_text_color': button_text_color,
+            'button_hover_color': button_hover_color,
+            'button_pressed_color': button_pressed_color,
+            'button_disabled_color': button_disabled_color,
+            'border_color': border_color,
+            'input_background_color': input_bg_color,
+            'selection_background_color': selection_bg_color,
+            'selection_text_color': selection_text_color,
+        }
+
+        try:
+            stylesheet = stylesheet_template.format(**style_values)
+            return stylesheet
+        except KeyError as e:
+            logging.error(f"Segnaposto mancante nel template: {e}")
+            return ""
+
+    def adjust_color(self, color_str, amount):
+        color = QColor(color_str)
+        h, s, v, a = color.getHsv()
+        v = max(0, min(255, v + amount))
+        color.setHsv(h, s, v, a)
+        return color.name()
+
+    def load_custom_stylesheet_template(self):
+        try:
+            # Determine base path
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.dirname(os.path.abspath(__file__))
+
+            resources_path = os.path.join(base_path, 'resources')
+            stylesheet_path = os.path.join(resources_path, 'custom_style.qss')
+
+            with open(stylesheet_path, 'r', encoding='utf-8') as file:
+                stylesheet_template = file.read()
+
+            return stylesheet_template
+        except FileNotFoundError:
+            logging.error("File custom_style.qss non trovato nella cartella resources.")
+            return ""
+        except Exception as e:
+            logging.error(f"Errore nel caricamento del template: {e}")
+            return ""
+        
+    theme_actions = {}
     def change_theme(self, theme_name):
-        """
-        Cambia il tema dell'applicazione e applica il foglio di stile corrispondente.
-        
-        Args:
-            theme_name (str): Nome del tema selezionato.
-        """
         self.current_theme = theme_name
-        
+
         # Resetta lo stile prima di applicare il nuovo
         self.reset_stylesheet()
-        
+
         stylesheet = load_stylesheet(theme_name)
         if stylesheet:
             self.setStyleSheet(stylesheet)
-        
+
         # Aggiorna le azioni dei menu per riflettere il tema selezionato
         for name, action in self.theme_actions.items():
             action.setChecked(name == theme_name)
-        
+
         # Salva il tema nelle impostazioni
         self.settings.setValue("theme", theme_name)
         logging.info(f"Tema cambiato a: {theme_name}")
@@ -734,15 +821,11 @@ class NormaViewer(QMainWindow):
         self.setStyleSheet("")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.ERROR)
     app = QApplication(sys.argv)
-
     viewer = NormaViewer()
-    
-    # Carica il foglio di stile iniziale in base alle impostazioni salvate
-    stylesheet = load_stylesheet(viewer.current_theme)  # Passa il tema corrente
-    if stylesheet:
-        app.setStyleSheet(stylesheet)
     viewer.show()
     sys.exit(app.exec())
+
 
 
