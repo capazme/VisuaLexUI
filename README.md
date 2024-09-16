@@ -22,8 +22,6 @@ VisuaLexUI is a Python-based graphical user interface (GUI) application built wi
 - **API Integration:** Fetch data from a remote API (VisuaLexAPI) with error handling, retries, and caching.
 - **Brocardi Information Display:** View detailed legal metadata, including information from the website brocardi.com.
 
-![Interfaccia Principale di VisuaLexUI](src/visualex_ui/resources/screen.png)
-
 ## Getting Started
 
 To get started with VisuaLexUI, follow the installation instructions below and run the application to explore its features.
@@ -91,15 +89,15 @@ Follow these steps to set up the application on your local machine:
     bash build.sh
     ```
 
-   The built application will be located in the `dist` directory.
+   The built application will be located in the directory.
 
 ## Usage
 
 - **Search Interface:** Use the input fields to search for legal norms by type, date, act number, and article number.
 - **Theme Customization:** Navigate to "Settings" > "Customize Theme" to adjust the application's theme.
-- **API URL Management:** Modify the API URL through "Settings" > "Change API URL" to set a new API endpoint.
+- **API URL Management:** Modify the API URL through "Settings" > "Change API URL" to set a new VisuaLexAPI endpoint.
 
-![Screenshot of VisuaLexUI](screenshot.png) *(Add a screenshot of the main interface here)*
+![Interfaccia Principale di VisuaLexUI](src/visualex_ui/resources/screen.png)
 
 ## Dependencies
 
