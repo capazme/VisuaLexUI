@@ -742,8 +742,8 @@ class NormaViewer(QMainWindow):
     def load_custom_stylesheet_template(self):
         try:
             # Usa il percorso corretto relativo alla directory principale del pacchetto
-            stylesheet_path = get_resource_path('visualex_ui/resources/custom_style.qss')
-            
+            stylesheet_path = get_resource_path('resources/custom_style.qss')
+            logging.info(f"looking in {stylesheet_path}")
             with open(stylesheet_path, 'r', encoding='utf-8') as file:
                 stylesheet_template = file.read()
 
