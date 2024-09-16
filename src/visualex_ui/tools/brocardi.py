@@ -14,8 +14,7 @@ CURRENT_APP_PATH = os.path.dirname(os.path.abspath(__file__))
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    handlers=[logging.FileHandler("brocardi_scraper.log"),
-                              logging.StreamHandler()])
+                    )
 
 class BrocardiScraper:
     """

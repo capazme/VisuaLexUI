@@ -10,8 +10,7 @@ from .config import MAX_CACHE_SIZE
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    handlers=[logging.FileHandler("norma.log"),
-                              logging.StreamHandler()])
+                    )
 
 @lru_cache(maxsize=MAX_CACHE_SIZE)
 def extract_pdf(driver, urn, timeout=30):

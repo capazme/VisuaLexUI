@@ -13,8 +13,7 @@ from . import eurlex
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    handlers=[logging.FileHandler("norma.log"),
-                              logging.StreamHandler()])
+                    )
 
 @lru_cache(maxsize=MAX_CACHE_SIZE)
 def complete_date(act_type, date, act_number):

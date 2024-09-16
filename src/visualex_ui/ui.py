@@ -15,15 +15,38 @@ import logging
 import json
 from requests.exceptions import Timeout, ConnectionError, HTTPError, RequestException
 from functools import lru_cache
-from tools.map import FONTI_PRINCIPALI
-from tools.norma import NormaVisitata
-from tools.themes import ThemeDialog
-from tools.config import THEMES
-import tufup
+from visualex_ui.tools.map import FONTI_PRINCIPALI
+from visualex_ui.tools.norma import NormaVisitata
+from visualex_ui.tools.themes import ThemeDialog
 
-with open('version.txt', 'r') as f:
-    CURRENT_VERSION = f.read()
+def get_resource_path(relative_path):
+    """ Ottieni il percorso del file quando l'app viene eseguita come eseguibile. """
+    try:
+        if hasattr(sys, '_MEIPASS'):
+            # Percorso per PyInstaller (in bundle)
+            base_path = os.path.join(sys._MEIPASS, relative_path)
+        else:
+            # Percorso durante lo sviluppo
+            base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
+        # Costruisci il percorso completo
+        full_path = os.path.join(base_path, relative_path)
+
+        # Debug: Stampa il percorso per verificare
+        print(f"Resolved resource path: {full_path}")
+
+        return full_path
+    except Exception as e:
+        logging.error(f"Errore nel calcolo del percorso delle risorse: {e}")
+        return relative_path
+
+
+
+# Carica la versione dell'app
+""" version_file_path = get_resource_path('version.txt')
+with open(version_file_path, 'r') as f:
+    CURRENT_VERSION = f.read() """
+    
 # Configura il logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -79,21 +102,11 @@ class NormaViewer(QMainWindow):
         super().__init__()
         self.setWindowTitle("Visualizzatore di Norme Legali")
         self.setGeometry(100, 100, 900, 700)
-        self.setWindowIcon(QIcon.fromTheme("text-x-generic"))
-
+        #self.setWindowIcon(QIcon.fromTheme("text-x-generic"))
+    
         # Caricamento delle impostazioni
         self.settings = QSettings("NormaApp", "NormaViewer")
         self.load_settings()
-
-        tufup.init({
-            'repository_url': 'https://github.com/capazme/VisuaLexUI/releases/latest/download/',  # URL per le release GitHub
-            'local_directory': './.updates',  # Directory locale per scaricare gli aggiornamenti
-            'target_name': 'VisuaLexUI-{version}.tar.gz'  # Nome del pacchetto di aggiornamento con segnaposto per la versione
-        })
-
-        # Controlla gli aggiornamenti all'avvio dell'applicazione
-        self.check_for_updates()
-
 
         # Memorizzazione dell'URL API
         self.api_url = self.settings.value("api_url", "https://example-default-url.ngrok-free.app")  # URL di default
@@ -130,7 +143,7 @@ class NormaViewer(QMainWindow):
         settings_menu = menu_bar.addMenu("Impostazioni")
 
         # Azione per modificare l'URL dell'API
-        api_url_action = QAction(QIcon.fromTheme("network-wired"), "Modifica URL API", self)
+        api_url_action = QAction("Modifica URL API", self)
         api_url_action.triggered.connect(self.change_api_url)
         settings_menu.addAction(api_url_action)
 
@@ -180,21 +193,6 @@ class NormaViewer(QMainWindow):
             self.api_url = new_url
             self.settings.setValue("api_url", self.api_url)
             QMessageBox.information(self, "URL Aggiornato", "L'URL dell'API è stato aggiornato correttamente.")
-
-    def toggle_dark_mode(self, checked):
-        self.is_dark_mode = checked
-        # Carica il foglio di stile appropriato in base al tema e alla modalità
-        if self.is_dark_mode:
-            dark_theme_name = self.current_theme.replace("Light", "Dark")
-            stylesheet = load_stylesheet(dark_theme_name)
-        else:
-            stylesheet = load_stylesheet(self.current_theme)
-
-        if stylesheet:
-            self.setStyleSheet(stylesheet)
-
-        # Salva la modalità nelle impostazioni
-        self.settings.setValue("dark_mode", self.is_dark_mode)
 
     def load_settings(self):
         self.current_theme = self.settings.value("theme", "Personalizzato")
@@ -259,7 +257,7 @@ class NormaViewer(QMainWindow):
         # Pulsante di ricerca
         self.search_button = QPushButton("Cerca Norma")
         self.search_button.clicked.connect(self.on_search_button_clicked)
-        self.search_button.setIcon(QIcon.fromTheme("edit-find"))
+        #self.search_button.setIcon(QIcon.fromTheme("edit-find"))
         self.search_button.setToolTip("Clicca per avviare la ricerca della norma.")
         search_layout.addRow(self.search_button)
 
@@ -327,7 +325,7 @@ class NormaViewer(QMainWindow):
         # Creazione del Dock Widget per i Brocardi
         self.brocardi_dock = QDockWidget("Informazioni Brocardi", self)
         self.brocardi_dock.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea | Qt.DockWidgetArea.LeftDockWidgetArea)
-        self.brocardi_dock.setWindowIcon(QIcon.fromTheme("help-browser"))
+        #self.brocardi_dock.setWindowIcon(QIcon.fromTheme("help-browser"))
 
         # Widget contenitore
         self.brocardi_info_widget = QWidget()
@@ -391,7 +389,7 @@ class NormaViewer(QMainWindow):
         # Pulsante per copiare tutte le informazioni
         copy_all_button = QPushButton("Copia Tutte le Informazioni")
         copy_all_button.clicked.connect(self.copy_all_norma_info)
-        copy_all_button.setIcon(QIcon.fromTheme("edit-copy"))
+        #copy_all_button.setIcon(QIcon.fromTheme("edit-copy"))
         copy_all_button.setToolTip("Copia tutte le informazioni visualizzate negli appunti.")
         text_layout.addWidget(copy_all_button)
 
@@ -692,44 +690,12 @@ class NormaViewer(QMainWindow):
         self.tabs.clear()
         self.dynamic_tabs.clear()
     
-    def load_stylesheet(self, theme_name):
-        try:
-            if getattr(sys, 'frozen', False):
-                base_path = sys._MEIPASS
-            else:
-                base_path = os.path.dirname(os.path.abspath(__file__))
-
-            resources_path = os.path.join(base_path, 'resources')
-            stylesheet_file = THEMES.get(theme_name)
-            if not stylesheet_file:
-                logging.error(f"Tema '{theme_name}' non trovato.")
-                return ""
-
-            stylesheet_path = os.path.join(resources_path, stylesheet_file)
-            with open(stylesheet_path, 'r', encoding='utf-8') as file:
-                stylesheet = file.read()
-
-            return stylesheet
-        except FileNotFoundError:
-            logging.error(f"File {stylesheet_file} non trovato nella cartella resources.")
-            return ""
-        except Exception as e:
-            logging.error(f"Errore nel caricamento del foglio di stile '{theme_name}': {e}")
-            return ""
-        
     def apply_custom_theme(self, custom_theme):
         stylesheet = self.generate_custom_stylesheet(custom_theme)
         if stylesheet:
             self.setStyleSheet(stylesheet)
         else:
             QMessageBox.warning(self, "Errore", "Impossibile applicare il tema personalizzato.")
-
-    def apply_predefined_theme(self, theme_name):
-        stylesheet = self.load_stylesheet(theme_name)
-        if stylesheet:
-            self.setStyleSheet(stylesheet)
-        else:
-            QMessageBox.warning(self, "Errore", f"Impossibile caricare il tema '{theme_name}'.")
 
     def generate_custom_stylesheet(self, custom_theme):
         # Load stylesheet template
@@ -786,15 +752,9 @@ class NormaViewer(QMainWindow):
 
     def load_custom_stylesheet_template(self):
         try:
-            # Determine base path
-            if getattr(sys, 'frozen', False):
-                base_path = sys._MEIPASS
-            else:
-                base_path = os.path.dirname(os.path.abspath(__file__))
-
-            resources_path = os.path.join(base_path, 'resources')
-            stylesheet_path = os.path.join(resources_path, 'custom_style.qss')
-
+            # Usa il percorso corretto relativo alla directory principale del pacchetto
+            stylesheet_path = get_resource_path('resources/custom_style.qss')
+            
             with open(stylesheet_path, 'r', encoding='utf-8') as file:
                 stylesheet_template = file.read()
 
@@ -805,57 +765,12 @@ class NormaViewer(QMainWindow):
         except Exception as e:
             logging.error(f"Errore nel caricamento del template: {e}")
             return ""
-        
-    theme_actions = {}
-    def change_theme(self, theme_name):
-        self.current_theme = theme_name
-
-        # Resetta lo stile prima di applicare il nuovo
-        self.reset_stylesheet()
-
-        stylesheet = load_stylesheet(theme_name)
-        if stylesheet:
-            self.setStyleSheet(stylesheet)
-
-        # Aggiorna le azioni dei menu per riflettere il tema selezionato
-        for name, action in self.theme_actions.items():
-            action.setChecked(name == theme_name)
-
-        # Salva il tema nelle impostazioni
-        self.settings.setValue("theme", theme_name)
-        logging.info(f"Tema cambiato a: {theme_name}")
 
     def reset_stylesheet(self):
         """
         Resetta il foglio di stile corrente per evitare sovrapposizioni.
         """
         self.setStyleSheet("")
-
-    def check_for_updates(self):
-        try:
-            update = tufup.check_for_updates(current_version=CURRENT_VERSION)
-            if update:
-                reply = QMessageBox.question(self, "Aggiornamento Disponibile",
-                                             f"Un nuovo aggiornamento ({update['version']}) è disponibile. Vuoi scaricarlo e installarlo?",
-                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-                if reply == QMessageBox.StandardButton.Yes:
-                    tufup.apply_update(update)  # Applica l'aggiornamento
-                    QMessageBox.information(self, "Aggiornamento Applicato", "L'applicazione è stata aggiornata. Riavvia per applicare le modifiche.")
-                    sys.exit()  # Esci e riavvia l'applicazione
-            else:
-                logging.info("L'applicazione è già aggiornata.")
-        except Exception as e:
-            logging.error(f"Errore durante il controllo degli aggiornamenti: {e}")
-            QMessageBox.critical(self, "Errore Aggiornamento", "Si è verificato un errore durante il controllo degli aggiornamenti.")
-
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.ERROR)
-    app = QApplication(sys.argv)
-    viewer = NormaViewer()
-    viewer.show()
-    sys.exit(app.exec())
 
 
 

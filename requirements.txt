@@ -1,9 +1,7 @@
 beautifulsoup4
 requests
-quart
 structlog
 selenium
 chromium
 PyQt6
 pyinstaller
-tufup
