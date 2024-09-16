@@ -20,25 +20,14 @@ from visualex_ui.tools.norma import NormaVisitata
 from visualex_ui.tools.themes import ThemeDialog
 
 def get_resource_path(relative_path):
-    """ Ottieni il percorso del file quando l'app viene eseguita come eseguibile. """
-    try:
-        if hasattr(sys, '_MEIPASS'):
-            # Percorso per PyInstaller (in bundle)
-            base_path = os.path.join(sys._MEIPASS, relative_path)
-        else:
-            # Percorso durante lo sviluppo
-            base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+    """Ottieni il percorso della risorsa per il runtime di PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):
+        # Quando l'app viene eseguita come eseguibile PyInstaller
+        return os.path.join(sys._MEIPASS, relative_path)
+    else:
+        # Quando l'app viene eseguita in ambiente di sviluppo (normale script Python)
+        return os.path.join(os.path.dirname(__file__), relative_path)
 
-        # Costruisci il percorso completo
-        full_path = os.path.join(base_path, relative_path)
-
-        # Debug: Stampa il percorso per verificare
-        print(f"Resolved resource path: {full_path}")
-
-        return full_path
-    except Exception as e:
-        logging.error(f"Errore nel calcolo del percorso delle risorse: {e}")
-        return relative_path
 
 
 
@@ -753,7 +742,7 @@ class NormaViewer(QMainWindow):
     def load_custom_stylesheet_template(self):
         try:
             # Usa il percorso corretto relativo alla directory principale del pacchetto
-            stylesheet_path = get_resource_path('resources/custom_style.qss')
+            stylesheet_path = get_resource_path('visualex_ui/resources/custom_style.qss')
             
             with open(stylesheet_path, 'r', encoding='utf-8') as file:
                 stylesheet_template = file.read()
