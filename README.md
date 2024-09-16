@@ -97,7 +97,6 @@ Follow these steps to set up the application on your local machine:
 - **Theme Customization:** Navigate to "Settings" > "Customize Theme" to adjust the application's theme.
 - **API URL Management:** Modify the API URL through "Settings" > "Change API URL" to set a new VisuaLexAPI endpoint.
 
-![Interfaccia Principale di VisuaLexUI](src/visualex_ui/resources/screen.png)
 
 ## Dependencies
 

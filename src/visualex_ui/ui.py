@@ -680,6 +680,9 @@ class NormaViewer(QMainWindow):
         self.dynamic_tabs.clear()
     
     def apply_custom_theme(self, custom_theme):
+        """
+        Apply the custom theme by generating and setting the stylesheet.
+        """
         stylesheet = self.generate_custom_stylesheet(custom_theme)
         if stylesheet:
             self.setStyleSheet(stylesheet)
@@ -687,21 +690,32 @@ class NormaViewer(QMainWindow):
             QMessageBox.warning(self, "Errore", "Impossibile applicare il tema personalizzato.")
 
     def generate_custom_stylesheet(self, custom_theme):
-        # Load stylesheet template
+        """
+        Genera un foglio di stile personalizzato basato sul tema fornito dall'utente.
+
+        Args:
+            custom_theme (dict): Dizionario contenente 'font_size' e 'colors' personalizzati dall'utente.
+
+        Returns:
+            str: Foglio di stile QSS generato.
+        """
+        # Carica il template del foglio di stile
         stylesheet_template = self.load_custom_stylesheet_template()
         if not stylesheet_template:
+            logging.error("Impossibile caricare il template del foglio di stile personalizzato.")
             return ""
 
-        # Map user-selected colors
+        # Recupera le proprietà dal tema personalizzato
         font_size = custom_theme['font_size']
         colors = custom_theme['colors']
 
-        background_color = colors[0]  # Background color
-        text_color = colors[1]        # Text color
-        button_bg_color = colors[2]   # Button background color
-        button_text_color = colors[3] # Button text color
+        # Mappatura dei colori selezionati dall'utente
+        background_color = colors[0]  # Colore di sfondo principale
+        text_color = colors[1]        # Colore del testo principale
+        button_bg_color = colors[2]   # Colore di sfondo dei pulsanti
+        button_text_color = colors[3] # Colore del testo dei pulsanti
 
-        # Compute additional colors
+        # Calcola i colori aggiuntivi utilizzando la funzione di regolazione del colore
         button_hover_color = self.adjust_color(button_bg_color, 20)
         button_pressed_color = self.adjust_color(button_bg_color, -20)
         button_disabled_color = self.adjust_color(button_bg_color, -40)
@@ -710,6 +724,7 @@ class NormaViewer(QMainWindow):
         selection_bg_color = self.adjust_color(button_bg_color, 30)
         selection_text_color = button_text_color
 
+        # Dizionario con tutti i valori di stile per il template QSS
         style_values = {
             'font_size': font_size,
             'background_color': background_color,
@@ -726,11 +741,13 @@ class NormaViewer(QMainWindow):
         }
 
         try:
+            # Format del template con i valori di stile
             stylesheet = stylesheet_template.format(**style_values)
             return stylesheet
         except KeyError as e:
             logging.error(f"Segnaposto mancante nel template: {e}")
             return ""
+
 
     def adjust_color(self, color_str, amount):
         color = QColor(color_str)

@@ -134,22 +134,27 @@ QListWidget::item:selected {{
 /* Stile per QTabWidget e QTabBar */
 QTabWidget::pane {{
     border: 1px solid {border_color};
-    background-color: {background_color};
+    background-color: {button_background_color};
     border-radius: 4px;
+    color: {text_color};
+
 }}
 
 QTabBar::tab {{
-    background: {border_color};
+    background: {button_background_color};
     border: 1px solid {border_color};
     padding: 5px 10px;
     border-radius: 4px;
     margin-right: 2px;
     font-size: {font_size}px;
+    color: {button_text_color};
+
 }}
 
 QTabBar::tab:selected {{
     background: {input_background_color};
     border-bottom-color: {input_background_color};
+    color: {button_background_color};
 }}
 
 QTabBar::tab:!selected:hover {{
@@ -164,7 +169,6 @@ QGroupBox {{
     padding: 10px;
     padding-top: 20px;
     font-weight: bold;
-    color: {text_color};
 }}
 
 QGroupBox::title {{
@@ -291,7 +295,7 @@ QProgressBar {{
 QProgressBar::chunk {{
     background-color: {button_background_color};
     width: 20px;
-    border-radius: 4px;
+    border-radius: 400px;
 }}
 
 /* Stile per QToolButton */

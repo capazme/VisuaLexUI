@@ -11,6 +11,7 @@ class ThemeDialog(QDialog):
         self.setWindowTitle("Personalizza Tema")
         self.setMinimumSize(400, 300)
 
+        self.parent = parent  # Keep reference to the parent to apply styles
         self.themes = themes or {}
         self.current_theme = current_theme
         self.custom_theme = custom_theme
@@ -52,6 +53,7 @@ class ThemeDialog(QDialog):
         font_label = QLabel("Dimensione del Font:")
         self.font_size_spinbox = QSpinBox()
         self.font_size_spinbox.setRange(8, 32)
+        self.font_size_spinbox.valueChanged.connect(self.apply_changes)  # Apply changes in real-time
         custom_layout.addRow(font_label, self.font_size_spinbox)
 
         self.custom_group.setLayout(custom_layout)
@@ -107,6 +109,8 @@ class ThemeDialog(QDialog):
     def on_theme_selected(self, theme_name):
         is_custom = theme_name == "Personalizzato"
         self.custom_group.setEnabled(is_custom)
+        if not is_custom:
+            self.parent.change_theme(theme_name)  # Apply selected theme immediately
 
     def select_color(self, index):
         initial_color = self.selected_colors[index]
@@ -114,6 +118,7 @@ class ThemeDialog(QDialog):
         if color.isValid():
             self.selected_colors[index] = color
             self.color_buttons[index].setStyleSheet(f"background-color: {color.name()}")
+            self.apply_changes()  # Apply changes in real-time
 
     def get_selected_theme(self):
         selected_theme = self.theme_selector.currentText()
@@ -126,5 +131,12 @@ class ThemeDialog(QDialog):
         else:
             return selected_theme
 
-        
-        
+    def apply_changes(self):
+        """
+        Apply the custom theme in real-time as the user makes changes.
+        """
+        custom_theme = {
+            'font_size': self.font_size_spinbox.value(),
+            'colors': [color.name() for color in self.selected_colors]
+        }
+        self.parent.apply_custom_theme(custom_theme)
