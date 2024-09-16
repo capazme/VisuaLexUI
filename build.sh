@@ -1,9 +1,12 @@
 #!/bin/bash
 
+# Imposta il percorso della directory dello script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Funzione per aggiornare la versione
 update_version() {
     local level=$1
-    local version_file="version.txt"
+    local version_file="$SCRIPT_DIR/version.txt"
     
     # Leggi la versione attuale
     current_version=$(cat "$version_file")
@@ -47,21 +50,22 @@ clean_previous_build() {
 
 # Funzione per costruire l'applicazione
 build_app() {
-    local version=$(cat version.txt)
+    local version=$(cat "$SCRIPT_DIR/version.txt")
     local output_name="VisualexApp-v$version"
-    
+    local icon_path="$SCRIPT_DIR/src/visualex_ui/resources/icon.icns"  # Percorso dinamico dell'icona
+
     # Esegui il comando PyInstaller
-    pyinstaller --onedir --windowed --add-data "src/visualex_ui/resources:visualex_ui/resources" \
-        --name "$output_name" --icon /Users/guglielmo/Desktop/CODE/VISUALEX/VisuaLexUI/icon.icns \
-        --noconfirm src/main.py
+    pyinstaller --onedir --windowed --add-data "$SCRIPT_DIR/src/visualex_ui/resources:visualex_ui/resources" \
+        --name "$output_name" --icon "$icon_path" \
+        --noconfirm "$SCRIPT_DIR/src/main.py"
 
     # Sposta l'applicazione fuori dalla cartella dist
-    mv "dist/$output_name.app" "./$output_name.app"
+    mv "$SCRIPT_DIR/dist/$output_name/$output_name.app" "$SCRIPT_DIR/$output_name.app"
     
     # Cancella le cartelle di build e il file .spec
     clean_previous_build
 
-    echo "Build completato. L'applicazione si trova in $PWD/$output_name.app"
+    echo "Build completato. L'applicazione si trova in $SCRIPT_DIR/$output_name.app"
 }
 
 # Controlla se è stato passato un argomento per aggiornare la versione

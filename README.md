@@ -1,6 +1,6 @@
 # VisuaLexUI
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Contributions](https://img.shields.io/badge/contributions-welcome-orange)
+![Version](https://img.shields.io/badge/version-0.0.5-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Contributions](https://img.shields.io/badge/contributions-welcome-orange)
 
 VisuaLexUI is a Python-based graphical user interface (GUI) application built with PyQt6. It allows users to search for and view legal norms, customize interface themes, and manage API interactions for retrieving legal data.
 
@@ -21,6 +21,8 @@ VisuaLexUI is a Python-based graphical user interface (GUI) application built wi
 - **Customizable Themes:** Customize the application’s appearance using a built-in theme dialog.
 - **API Integration:** Fetch data from a remote API (VisuaLexAPI) with error handling, retries, and caching.
 - **Brocardi Information Display:** View detailed legal metadata, including information from the website brocardi.com.
+
+![Interfaccia Principale di VisuaLexUI](src/visualex_ui/resources/screen.png)
 
 ## Getting Started
 

@@ -1,10 +1,13 @@
 @echo off
 setlocal
 
+REM Imposta il percorso della directory dello script
+set "SCRIPT_DIR=%~dp0"
+
 REM Funzione per aggiornare la versione
 :UPDATE_VERSION
     set "level=%1"
-    set "version_file=version.txt"
+    set "version_file=%SCRIPT_DIR%version.txt"
 
     REM Leggi la versione attuale
     for /f "delims=" %%v in (%version_file%) do set "current_version=%%v"
@@ -47,19 +50,20 @@ REM Funzione per pulire la build precedente
 
 REM Funzione per costruire l'applicazione
 :BUILD_APP
-    set /p version=<version.txt
+    set /p version=<"%SCRIPT_DIR%version.txt"
     set "output_name=VisualexApp-v%version%"
+    set "icon_path=%SCRIPT_DIR%src\visualex_ui\resources\icon.icns"
 
     REM Esegui il comando PyInstaller
-    pyinstaller --onedir --windowed --add-data "src/visualex_ui/resources;visualex_ui/resources" --name "%output_name%" --icon "C:\Users\guglielmo\Desktop\CODE\VISUALEX\VisuaLexUI\icon.icns" --noconfirm src\main.py
+    pyinstaller --onedir --windowed --add-data "%SCRIPT_DIR%src\visualex_ui\resources;visualex_ui/resources" --name "%output_name%" --icon "%icon_path%" --noconfirm "%SCRIPT_DIR%src\main.py"
 
     REM Sposta l'applicazione fuori dalla cartella dist
-    move "dist\%output_name%\%output_name%.app" "%cd%\%output_name%.app"
+    move "dist\%output_name%\%output_name%.app" "%SCRIPT_DIR%\%output_name%.app"
 
     REM Cancella le cartelle di build e file .spec
     call :CLEAN_PREVIOUS_BUILD
 
-    echo Build completato. L'applicazione si trova in %cd%\%output_name%.app
+    echo Build completato. L'applicazione si trova in %SCRIPT_DIR%\%output_name%.app
     exit /b 0
 
 REM Controlla se è stato passato un argomento per aggiornare la versione
