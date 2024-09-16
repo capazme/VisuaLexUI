@@ -10,3 +10,4 @@ release_tar.sh
 *.tar.gz
 releases
 *.app
+*.zip
