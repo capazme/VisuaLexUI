@@ -55,16 +55,19 @@ build_app() {
         --name "$output_name" --icon /Users/guglielmo/Desktop/CODE/VISUALEX/VisuaLexUI/icon.icns \
         --noconfirm src/main.py
 
-    echo "Build completato. Il file si trova nella cartella dist/$output_name"
+    # Sposta l'applicazione fuori dalla cartella dist
+    mv "dist/$output_name.app" "./$output_name.app"
+    
+    # Cancella le cartelle di build e il file .spec
+    clean_previous_build
+
+    echo "Build completato. L'applicazione si trova in $PWD/$output_name.app"
 }
 
 # Controlla se è stato passato un argomento per aggiornare la versione
 if [ "$1" == "-maj" ] || [ "$1" == "-min" ] || [ "$1" == "-patch" ]; then
     update_version "$1"
 fi
-
-# Pulizia della build precedente
-clean_previous_build
 
 # Costruisci l'app
 build_app

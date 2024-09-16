@@ -53,7 +53,13 @@ REM Funzione per costruire l'applicazione
     REM Esegui il comando PyInstaller
     pyinstaller --onedir --windowed --add-data "src/visualex_ui/resources;visualex_ui/resources" --name "%output_name%" --icon "C:\Users\guglielmo\Desktop\CODE\VISUALEX\VisuaLexUI\icon.icns" --noconfirm src\main.py
 
-    echo Build completato. Il file si trova nella cartella dist\%output_name%
+    REM Sposta l'applicazione fuori dalla cartella dist
+    move "dist\%output_name%\%output_name%.app" "%cd%\%output_name%.app"
+
+    REM Cancella le cartelle di build e file .spec
+    call :CLEAN_PREVIOUS_BUILD
+
+    echo Build completato. L'applicazione si trova in %cd%\%output_name%.app
     exit /b 0
 
 REM Controlla se è stato passato un argomento per aggiornare la versione
@@ -64,9 +70,6 @@ if "%1"=="-maj" (
 ) else if "%1"=="-patch" (
     call :UPDATE_VERSION -patch
 )
-
-REM Pulizia della build precedente
-call :CLEAN_PREVIOUS_BUILD
 
 REM Costruisci l'app
 call :BUILD_APP
