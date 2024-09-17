@@ -124,21 +124,21 @@ class SearchInputSection(QGroupBox):
 
     def get_search_payload(self):
         """Raccoglie e restituisce i dati di input necessari per la ricerca come dizionario."""
-        act_type = self.act_type_input.currentText()
-        date = self.date_input.text().strip()
-        act_number = self.act_number_input.text().strip()
-        article = self.article_input.text().strip()
+        # Raccoglie i dati dagli input utente
+        act_type = self.act_type_input.currentText().strip()
+        date = self.date_input.text().strip() if self.date_input.text().strip() else None
+        act_number = self.act_number_input.text().strip() if self.act_number_input.text().strip() else None
+        article = self.article_input.text().strip() if self.article_input.text().strip() else None
         version = "originale" if self.version_originale.isChecked() else "vigente"
         vigency_date = self.vigency_date_input.date().toString("yyyy-MM-dd") if self.version_vigente.isChecked() else None
 
         annex = None
         if self.annex_radio_button.isChecked():
-            annex = self.annex_number_input.text().strip()
+            annex = self.annex_number_input.text().strip() if self.annex_number_input.text().strip() else None
 
         # Crea i dati di richiesta
         payload = {
             "act_type": act_type,
-            "article": article,
             "version": version,
         }
         
@@ -148,7 +148,10 @@ class SearchInputSection(QGroupBox):
             
         if act_number:
             payload["act_number"] = act_number
-            
+
+        if article:
+            payload["article"] = article
+
         if vigency_date:
             payload["version_date"] = vigency_date
             

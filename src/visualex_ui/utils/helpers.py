@@ -17,10 +17,10 @@ def get_resource_path(relative_path):
     """
     if hasattr(sys, '_MEIPASS'):
         # Quando l'app viene eseguita come eseguibile PyInstaller
-        return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(sys._MEIPASS,'viasualex_ui', relative_path)
     else:
         # Quando l'app viene eseguita in ambiente di sviluppo (normale script Python)
-        return os.path.join(os.path.dirname(__file__), relative_path)
+        return os.path.join(os.path.dirname(__file__),'..', relative_path)
 
 def add_divider_to_list(list_widget):
     """

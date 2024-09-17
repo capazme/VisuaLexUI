@@ -1,4 +1,3 @@
-# visualex_ui/components/norma_info.py
 from PyQt6.QtWidgets import QGroupBox, QFormLayout, QLabel, QPushButton, QApplication, QMessageBox
 from PyQt6.QtCore import Qt
 
@@ -9,7 +8,7 @@ class NormaInfoSection(QGroupBox):
         self.setup_ui()
 
     def setup_ui(self):
-        layout = QFormLayout()
+        self.layout = QFormLayout()
 
         # Etichette per mostrare le informazioni sulla norma
         self.urn_label = QLabel()
@@ -21,18 +20,20 @@ class NormaInfoSection(QGroupBox):
         self.numero_atto_label = QLabel()
 
         # Aggiunta delle etichette al layout
-        layout.addRow("URN:", self.urn_label)
-        layout.addRow("Tipo di Atto:", self.tipo_atto_label)
-        layout.addRow("Data:", self.data_label)
-        layout.addRow("Numero Atto:", self.numero_atto_label)
+        self.layout.addRow("URN:", self.urn_label)
+        self.layout.addRow("Tipo di Atto:", self.tipo_atto_label)
+
+        # Aggiungi righe con le etichette di testo per Data e Numero Atto
+        self.data_row = self.layout.addRow("Data:", self.data_label)
+        self.numero_atto_row = self.layout.addRow("Numero Atto:", self.numero_atto_label)
 
         # Pulsante per copiare tutte le informazioni visualizzate
         self.copy_info_button = QPushButton("Copia Informazioni")
         self.copy_info_button.setToolTip("Copia tutte le informazioni visualizzate negli appunti.")
         self.copy_info_button.clicked.connect(self.copy_all_norma_info)
-        layout.addRow(self.copy_info_button)
+        self.layout.addRow(self.copy_info_button)
 
-        self.setLayout(layout)
+        self.setLayout(self.layout)
 
     def update_info(self, normavisitata):
         """
@@ -46,8 +47,24 @@ class NormaInfoSection(QGroupBox):
         # Popola le etichette con le informazioni della norma
         self.urn_label.setText(f'<a href="{normavisitata.urn}">{normavisitata.urn}</a>')
         self.tipo_atto_label.setText(normavisitata.norma.tipo_atto_str)
-        self.data_label.setText(normavisitata.norma.data)
-        self.numero_atto_label.setText(normavisitata.norma.numero_atto)
+
+        # Verifica se il campo "data" è presente e mostra/nasconde l'etichetta di conseguenza
+        if normavisitata.norma.data:
+            self.data_label.setText(normavisitata.norma.data)
+            self.data_label.setVisible(True)
+            self.layout.labelForField(self.data_label).setVisible(True)  # Mostra l'etichetta di testo "Data:"
+        else:
+            self.data_label.setVisible(False)
+            self.layout.labelForField(self.data_label).setVisible(False)  # Nascondi l'etichetta di testo "Data:"
+
+        # Verifica se il campo "numero_atto" è presente e mostra/nasconde l'etichetta di conseguenza
+        if normavisitata.norma.numero_atto:
+            self.numero_atto_label.setText(normavisitata.norma.numero_atto)
+            self.numero_atto_label.setVisible(True)
+            self.layout.labelForField(self.numero_atto_label).setVisible(True)  # Mostra l'etichetta di testo "Numero Atto:"
+        else:
+            self.numero_atto_label.setVisible(False)
+            self.layout.labelForField(self.numero_atto_label).setVisible(False)  # Nascondi l'etichetta di testo "Numero Atto:"
 
     def clear_info(self):
         """
@@ -55,8 +72,14 @@ class NormaInfoSection(QGroupBox):
         """
         self.urn_label.clear()
         self.tipo_atto_label.clear()
+
         self.data_label.clear()
+        self.data_label.setVisible(False)
+        self.layout.labelForField(self.data_label).setVisible(False)
+
         self.numero_atto_label.clear()
+        self.numero_atto_label.setVisible(False)
+        self.layout.labelForField(self.numero_atto_label).setVisible(False)
 
     def copy_all_norma_info(self):
         """
@@ -68,9 +91,9 @@ class NormaInfoSection(QGroupBox):
             info.append(f"URN: {self.urn_label.text()}")
         if self.tipo_atto_label.text():
             info.append(f"Tipo di Atto: {self.tipo_atto_label.text()}")
-        if self.data_label.text():
+        if self.data_label.isVisible() and self.data_label.text():  # Copia solo se visibile
             info.append(f"Data: {self.data_label.text()}")
-        if self.numero_atto_label.text():
+        if self.numero_atto_label.isVisible() and self.numero_atto_label.text():  # Copia solo se visibile
             info.append(f"Numero Atto: {self.numero_atto_label.text()}")
 
         # Copia negli appunti

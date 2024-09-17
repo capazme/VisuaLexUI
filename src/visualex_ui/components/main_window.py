@@ -126,7 +126,7 @@ class NormaViewer(QMainWindow):
     def get_app_version(self):
         """Ottiene la versione dell'applicazione dal file delle risorse."""
         try:
-            version_file_path = get_resource_path('visualex_ui/resources/version.txt')
+            version_file_path = get_resource_path('resources/version.txt')
             with open(version_file_path, 'r') as f:
                 return f.read().strip()
         except FileNotFoundError:
