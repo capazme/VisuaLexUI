@@ -7,7 +7,7 @@ set "SCRIPT_DIR=%~dp0"
 REM Funzione per aggiornare la versione
 :UPDATE_VERSION
     set "level=%1"
-    set "version_file=%SCRIPT_DIR%version.txt"
+    set "version_file=%SCRIPT_DIR%src\visualex_ui\resources\version.txt"
 
     REM Leggi la versione attuale
     for /f "delims=" %%v in (%version_file%) do set "current_version=%%v"

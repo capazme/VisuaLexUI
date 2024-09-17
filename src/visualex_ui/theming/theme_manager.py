@@ -1,9 +1,119 @@
+# visualex_ui/theming/theme_manager.py
+
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox,
-    QColorDialog, QSpinBox, QMessageBox, QGroupBox, QFormLayout
+    QColorDialog, QSpinBox, QGroupBox, QFormLayout
 )
 from PyQt6.QtGui import QColor
-from functools import partial  # Importa partial per risolvere il problema con le funzioni lambda
+from functools import partial 
+from ..utils.helpers import get_resource_path
+import logging
+
+class ThemeManager:
+    @staticmethod
+    def apply_custom_theme(widget, custom_theme):
+        """
+        Applica il tema personalizzato al widget dato utilizzando i colori e la dimensione del font specificati.
+        """
+        if not custom_theme:
+            logging.error("Tema personalizzato non fornito o non valido.")
+            return
+
+        stylesheet = ThemeManager.generate_custom_stylesheet(custom_theme)
+        if stylesheet:
+            widget.setStyleSheet(stylesheet)
+        else:
+            logging.error("Errore nella generazione del foglio di stile personalizzato.")
+
+    @staticmethod
+    def generate_custom_stylesheet(custom_theme):
+        """
+        Genera un foglio di stile personalizzato basato sui colori e sulla dimensione del font forniti dall'utente.
+
+        Args:
+            custom_theme (dict): Dizionario contenente 'font_size' e 'colors' personalizzati dall'utente.
+
+        Returns:
+            str: Foglio di stile QSS generato.
+        """
+        try:
+            # Load base stylesheet from custom_style.qss
+            stylesheet_template_path = get_resource_path('visualex_ui/resources/custom_style.qss')
+            with open(stylesheet_template_path, 'r', encoding='utf-8') as file:
+                base_stylesheet = file.read()
+
+            # Recupera le proprietà dal tema personalizzato
+            font_size = custom_theme['font_size']
+            colors = custom_theme['colors']
+
+            # Mappatura dei colori selezionati dall'utente
+            background_color = colors[0]  # Colore di sfondo principale
+            text_color = colors[1]        # Colore del testo principale
+            button_bg_color = colors[2]   # Colore di sfondo dei pulsanti
+            button_text_color = colors[3] # Colore del testo dei pulsanti
+
+            # Calcola i colori aggiuntivi utilizzando la funzione di regolazione del colore
+            button_hover_color = ThemeManager.adjust_color(button_bg_color, 20)
+            button_pressed_color = ThemeManager.adjust_color(button_bg_color, -20)
+            button_disabled_color = ThemeManager.adjust_color(button_bg_color, -40)
+            border_color = ThemeManager.adjust_color(text_color, -40)
+            input_bg_color = ThemeManager.adjust_color(background_color, 10)
+            selection_bg_color = ThemeManager.adjust_color(button_bg_color, 30)
+            selection_text_color = button_text_color
+
+            # Replace placeholders in the base stylesheet with the custom theme values
+            final_stylesheet = base_stylesheet.format(
+                font_size=font_size,
+                background_color=background_color,
+                text_color=text_color,
+                button_background_color=button_bg_color,
+                button_text_color=button_text_color,
+                button_hover_color=button_hover_color,
+                button_pressed_color=button_pressed_color,
+                button_disabled_color=button_disabled_color,
+                border_color=border_color,
+                input_background_color=input_bg_color,
+                selection_background_color=selection_bg_color,
+                selection_text_color=selection_text_color
+            )
+
+            return final_stylesheet
+        except Exception as e:
+            logging.error(f"Errore nella generazione del foglio di stile: {e}")
+            return ""
+
+    @staticmethod
+    def adjust_color(color_str, amount):
+        """
+        Regola la luminosità di un colore specifico per creare variazioni (es. hover, disabled).
+
+        Args:
+            color_str (str): Colore in formato hex (es. "#RRGGBB").
+            amount (int): Valore per regolare la luminosità. Positivo per schiarire, negativo per scurire.
+
+        Returns:
+            str: Colore regolato in formato hex.
+        """
+        color = QColor(color_str)
+        h, s, v, a = color.getHsv()
+        v = max(0, min(255, v + amount))
+        color.setHsv(h, s, v, a)
+        return color.name()
+
+    @staticmethod
+    def get_themes():
+        """Restituisce un dizionario con i temi predefiniti disponibili."""
+        return {
+            "Tema Chiaro": {
+                'font_size': 14,
+                'colors': ['#FFFFFF', '#000000', '#E0E0E0', '#000000']  # Colori del tema chiaro
+            },
+            "Tema Scuro": {
+                'font_size': 14,
+                'colors': ['#2E2E2E', '#FFFFFF', '#5E5E5E', '#FFFFFF']  # Colori del tema scuro
+            },
+            # Aggiungi altri temi predefiniti qui
+        }
 
 class ThemeDialog(QDialog):
     def __init__(self, parent=None, themes=None, current_theme=None, custom_theme=None):
