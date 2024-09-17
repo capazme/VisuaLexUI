@@ -1,7 +1,5 @@
-# visualex_ui/components/main_window.py
-
-from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton
-from PyQt6.QtCore import QSettings, Qt  # Importa Qt per DockWidgetArea
+from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton, QDockWidget, QScrollArea
+from PyQt6.QtCore import QSettings, Qt, QEvent
 from PyQt6.QtGui import QIcon, QAction
 from .search_input import SearchInputSection
 from .norma_info import NormaInfoSection
@@ -10,7 +8,7 @@ from .output_area import OutputArea
 from ..theming.theme_manager import ThemeManager, ThemeDialog
 from ..network.data_fetcher import FetchDataThread
 from ..utils.helpers import get_resource_path
-from ..utils.cache_manager import CacheManager  # Importa CacheManager
+from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
 import logging
 import re
@@ -35,7 +33,7 @@ class NormaViewer(QMainWindow):
     def setup_ui(self):
         # Impostazioni dell'applicazione
         self.settings = QSettings("NormaApp", "NormaViewer")
-        self.api_url = self.settings.value("api_url", "https:0.0.0.0:8000")  # URL di default
+        self.api_url = self.settings.value("api_url", "https://0.0.0.0:8000")
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
@@ -46,28 +44,76 @@ class NormaViewer(QMainWindow):
         # Layout principale
         main_layout = QVBoxLayout()
 
-        # Sezione di input di ricerca
+        # Sezione di input di ricerca con widget centrale
         self.search_input_section = SearchInputSection(self)
-        main_layout.addWidget(self.search_input_section)
+        self.setCentralWidget(self.search_input_section)
 
-        # Sezione delle informazioni sulla norma (collapsible)
-        self.create_collapsible_norma_info_section(main_layout)
+        # Aggiunta di Dock widget per sezioni collassabili
+        self.create_collapsible_norma_info_dock()
+        self.create_collapsible_brocardi_dock()
+        self.create_collapsible_output_dock()
+    
+    def moveEvent(self, event):
+        """Evento chiamato quando la finestra viene spostata."""
+        self.adjust_window_size()
+        super().moveEvent(event)
 
-        # Sezione di output
-        self.output_area = OutputArea(self)
-        main_layout.addWidget(self.output_area)
+    def resizeEvent(self, event):
+        """Evento chiamato quando la finestra viene ridimensionata."""
+        self.adjust_window_size()
+        super().resizeEvent(event)
 
-        # Sezione del Brocardi Dock (collapsible)
-        self.create_collapsible_brocardi_dock(main_layout)
+    def adjust_window_size(self):
+        """Regola la dimensione della finestra per evitare che esca dai limiti dello schermo disponibile."""
+        screen_geometry = QApplication.primaryScreen().availableGeometry()
+        window_geometry = self.frameGeometry()
 
-        # Imposta il widget centrale
-        central_widget = QWidget()
-        central_widget.setLayout(main_layout)
-        self.setCentralWidget(central_widget)
+        # Verifica i bordi a destra e ridimensiona la larghezza se necessario
+        if window_geometry.right() > screen_geometry.right():
+            new_width = screen_geometry.width() - window_geometry.left()
+            self.resize(new_width, self.height())
 
-        # Cache per risultati di ricerca
-        self.search_cache = {}
+        # Verifica i bordi a sinistra e ridimensiona la larghezza se necessario
+        if window_geometry.left() < screen_geometry.left():
+            self.move(screen_geometry.left(), window_geometry.top())
 
+        # Verifica i bordi in basso e ridimensiona l'altezza se necessario
+        if window_geometry.bottom() > screen_geometry.bottom():
+            new_height = screen_geometry.height() - window_geometry.top()
+            self.resize(self.width(), new_height)
+
+        # Verifica i bordi in alto e ridimensiona l'altezza se necessario
+        if window_geometry.top() < screen_geometry.top():
+            self.move(window_geometry.left(), screen_geometry.top())
+
+    def create_collapsible_norma_info_dock(self):
+        """Crea un dock widget collassabile per le informazioni sulla norma."""
+        self.norma_info_dock = QDockWidget("Informazioni sulla Norma", self)
+        self.norma_info_section = NormaInfoSection(self)
+        self.norma_info_dock.setWidget(self.norma_info_section)
+        self.norma_info_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable |
+                                         QDockWidget.DockWidgetFeature.DockWidgetClosable |
+                                         QDockWidget.DockWidgetFeature.DockWidgetFloatable)
+        self.norma_info_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
+
+    def create_collapsible_brocardi_dock(self):
+        """Crea un dock widget collassabile per le informazioni sui Brocardi."""
+        self.brocardi_dock = BrocardiDockWidget(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.brocardi_dock)
+
+    def create_collapsible_output_dock(self):
+        """Crea un dock widget collassabile per l'area di output."""
+        self.output_dock = OutputArea(self)  # Crea l'oggetto dock
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)
+    
+    def toggle_dock_visibility(self, dock_widget):
+        """Funzione helper per mostrare o nascondere un dock widget."""
+        if dock_widget.isVisible():
+            dock_widget.hide()
+        else:
+            dock_widget.show()
+   
     def create_menu(self):
         # Barra dei menu
         menu_bar = self.menuBar()
@@ -85,32 +131,6 @@ class NormaViewer(QMainWindow):
         theme_customize_action = QAction("Personalizza Tema", self)
         theme_customize_action.triggered.connect(self.open_theme_dialog)
         settings_menu.addAction(theme_customize_action)
-
-    def create_collapsible_norma_info_section(self, layout):
-        # Pulsante per mostrare/nascondere le informazioni sulla norma
-        self.norma_info_toggle_button = QPushButton("Mostra/Nascondi Informazioni sulla Norma")
-        self.norma_info_toggle_button.setCheckable(True)
-        self.norma_info_toggle_button.setChecked(True)
-        self.norma_info_toggle_button.clicked.connect(self.toggle_norma_info)
-        layout.addWidget(self.norma_info_toggle_button)
-
-        # Contenitore per le informazioni sulla norma
-        self.norma_info_section = NormaInfoSection(self)
-        self.norma_info_section.setVisible(True)
-        layout.addWidget(self.norma_info_section)
-
-    def create_collapsible_brocardi_dock(self, layout):
-        # Pulsante per mostrare/nascondere il Brocardi Dock
-        self.brocardi_toggle_button = QPushButton("Mostra/Nascondi Brocardi")
-        self.brocardi_toggle_button.setCheckable(True)
-        self.brocardi_toggle_button.setChecked(False)
-        self.brocardi_toggle_button.clicked.connect(self.toggle_brocardi_dock)
-        layout.addWidget(self.brocardi_toggle_button)
-
-        # Dock widget per le informazioni sui Brocardi
-        self.brocardi_dock = BrocardiDockWidget(self)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.brocardi_dock)
-        self.brocardi_dock.setVisible(False)  # Initially hidden
 
     def toggle_norma_info(self):
         """Mostra o nasconde la sezione delle informazioni sulla norma."""
@@ -260,7 +280,7 @@ class NormaViewer(QMainWindow):
 
         # Verifica se i dati ricevuti contengono un errore
         if isinstance(normavisitata, dict) and 'error' in normavisitata:
-            self.output_area.display_text(normavisitata['error'])
+            self.output_dock.display_text(normavisitata['error'])  # Usa self.output_dock
             QMessageBox.critical(self, "Errore", normavisitata['error'])
             return
 
@@ -269,7 +289,7 @@ class NormaViewer(QMainWindow):
 
         # Pulisce e visualizza il testo della norma
         cleaned_text = re.sub(r'\n\s*\n', '\n', normavisitata._article_text.strip()) if normavisitata._article_text else ''
-        self.output_area.display_text(cleaned_text)
+        self.output_dock.display_text(cleaned_text)  # Usa self.output_dock
 
         # Aggiunge informazioni sui Brocardi al widget dock
         if normavisitata._brocardi_info:
@@ -277,7 +297,7 @@ class NormaViewer(QMainWindow):
             position = brocardi_info.get('position', "Posizione non disponibile")
             link = brocardi_info.get('link', "#")
             self.brocardi_dock.add_brocardi_info(position, link, brocardi_info.get('info', {}))
-    
+
     def clipboard(self):
         """Ritorna l'oggetto clipboard dell'applicazione."""
         return QApplication.clipboard()

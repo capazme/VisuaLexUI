@@ -1,16 +1,22 @@
 # visualex_ui/components/output_area.py
 
-from PyQt6.QtWidgets import QGroupBox, QVBoxLayout, QTextEdit, QPushButton, QLabel, QScrollArea, QMessageBox, QApplication, QListWidget, QListWidgetItem, QTextBrowser
+from PyQt6.QtWidgets import QGroupBox, QVBoxLayout, QTextEdit, QPushButton, QLabel, QScrollArea, QMessageBox, QApplication, QListWidget, QListWidgetItem, QTextBrowser, QDockWidget, QWidget
 from PyQt6.QtGui import QFont, QTextOption
+from PyQt6.QtCore import Qt
 
-class OutputArea(QGroupBox):
+class OutputArea(QDockWidget):
     def __init__(self, parent):
         super().__init__("Testo della Norma", parent)
         self.parent = parent
+        self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        self.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable |
+                         QDockWidget.DockWidgetFeature.DockWidgetClosable |
+                         QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.setup_ui()
 
     def setup_ui(self):
-        # Layout principale
+        # Widget principale per il contenuto del dock
+        self.output_widget = QWidget()
         layout = QVBoxLayout()
 
         # Visualizzazione del testo della norma
@@ -32,7 +38,9 @@ class OutputArea(QGroupBox):
         self.copy_all_button.setToolTip("Copia tutte le informazioni visualizzate negli appunti.")
         layout.addWidget(self.copy_all_button)
 
-        self.setLayout(layout)
+        # Imposta il layout nel widget principale e aggiungi al dock
+        self.output_widget.setLayout(layout)
+        self.setWidget(self.output_widget)
 
     def display_text(self, text):
         """
@@ -77,6 +85,7 @@ class OutputArea(QGroupBox):
 
         # Show notification
         QMessageBox.information(self, "Informazione Copiata", "Tutte le informazioni selezionate sono state copiate negli appunti.")
+
 
     def get_brocardi_info_as_text(self, seleziona_solo=False):
         """
