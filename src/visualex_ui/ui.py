@@ -29,8 +29,6 @@ def get_resource_path(relative_path):
         return os.path.join(os.path.dirname(__file__), relative_path)
 
 
-
-
 # Carica la versione dell'app
 """ version_file_path = get_resource_path('version.txt')
 with open(version_file_path, 'r') as f:
@@ -98,7 +96,7 @@ class NormaViewer(QMainWindow):
         self.load_settings()
 
         # Memorizzazione dell'URL API
-        self.api_url = self.settings.value("api_url", "https://example-default-url.ngrok-free.app")  # URL di default
+        self.api_url = self.settings.value("api_url", "https:0.0.0.0:8000")  # URL di default
 
         # Barra di stato
         self.status_bar = QStatusBar()
@@ -211,10 +209,28 @@ class NormaViewer(QMainWindow):
         self.date_input.setToolTip("Inserisci la data dell'atto nel formato gg/mm/aaaa.")
         self.act_number_input = QLineEdit()
         self.act_number_input.setToolTip("Inserisci il numero dell'atto legislativo.")
+
+        # New radio button for annex number
+        self.annex_radio_button = QRadioButton("Inserisci Numero Allegato")
+        self.annex_radio_button.setToolTip("Seleziona per inserire il numero dell'allegato.")
+        self.annex_radio_button.toggled.connect(self.toggle_annex_input)  # Connect to function to enable/disable
+
+        # New input for annex number
+        self.annex_number_input = QLineEdit()
+        self.annex_number_input.setToolTip("Inserisci il numero dell'allegato.")
+        self.annex_number_input.setEnabled(False)  # Initially disabled
+
+        # Layout for Act Number and annex Number in the same row
+        act_annex_layout = QHBoxLayout()
+        act_annex_layout.addWidget(self.act_number_input)
+        act_annex_layout.addWidget(self.annex_radio_button)
+        act_annex_layout.addWidget(self.annex_number_input)
+
+        search_layout.addRow("Data:", self.date_input)
+        search_layout.addRow("Numero Atto:", act_annex_layout)
+
         self.article_input = QLineEdit()
         self.article_input.setToolTip("Inserisci il numero dell'articolo da cercare.")
-        search_layout.addRow("Data:", self.date_input)
-        search_layout.addRow("Numero Atto:", self.act_number_input)
         search_layout.addRow("Numero Articolo:", self.article_input)
 
         # Selezione versione e data di vigenza
@@ -261,6 +277,17 @@ class NormaViewer(QMainWindow):
         # Inizializza i campi di input
         self.update_input_fields()
 
+    def toggle_annex_input(self):
+        """
+        Enable or disable the annex number input based on the radio button selection.
+        """
+        is_checked = self.annex_radio_button.isChecked()
+        self.annex_number_input.setEnabled(is_checked)
+    
+    def toggle_vigency_date(self):
+        self.vigency_date_input.setEnabled(self.version_vigente.isChecked())
+
+
     def update_input_fields(self):
         selected_act_type = self.act_type_input.currentText()
         allowed_types = ['legge', 'decreto legge', 'decreto legislativo', 'd.p.r.', 'Regolamento UE', 'Direttiva UE', 'regio decreto']
@@ -274,9 +301,6 @@ class NormaViewer(QMainWindow):
         if not is_enabled:
             self.date_input.clear()
             self.act_number_input.clear()
-
-    def toggle_vigency_date(self):
-        self.vigency_date_input.setEnabled(self.version_vigente.isChecked())
 
     def create_collapsible_norma_info_section(self, layout):
         self.norma_info_button = QPushButton("Informazioni sulla Norma")
@@ -525,6 +549,11 @@ class NormaViewer(QMainWindow):
         version = "originale" if self.version_originale.isChecked() else "vigente"
         vigency_date = self.vigency_date_input.date().toString("yyyy-MM-dd") if self.version_vigente.isChecked() else None
 
+        # Check if the attachment radio button is selected
+        annex = None
+        if self.annex_radio_button.isChecked():
+            annex = self.annex_number_input.text().strip()
+
         # Validazione degli input con feedback
         if not act_type:
             QMessageBox.warning(self, "Errore di Input", "Il campo 'Tipo di Atto' è obbligatorio.")
@@ -534,15 +563,28 @@ class NormaViewer(QMainWindow):
         # Crea i dati di richiesta e avvia un thread di fetch
         payload = {
             "act_type": act_type,
-            "date": date,
-            "act_number": act_number,
             "article": article,
             "version": version,
-            "version_date": vigency_date
         }
+        
+        # Add optional fields to the payload if they are not empty
+        if date:
+            payload["date"] = date
+            
+        if act_number:
+            payload["act_number"] = act_number
+            
+        if vigency_date:
+            payload["version_date"] = vigency_date
+            
+        if annex:
+            payload["annex"] = annex
+
+        # Generate cache key dynamically based on the payload content
+        cache_key_parts = [f"{key}={value}" for key, value in payload.items() if value]
+        cache_key = "&".join(cache_key_parts)
 
         # Controlla se i dati sono già nella cache
-        cache_key = f"{act_type}-{date}-{act_number}-{article}-{version}-{vigency_date}"
         cached_result = self.get_cached_data(cache_key)
         if cached_result:
             self.display_data(cached_result)
