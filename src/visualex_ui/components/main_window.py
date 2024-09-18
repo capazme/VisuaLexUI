@@ -1,6 +1,7 @@
-from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton, QDockWidget, QScrollArea
-from PyQt6.QtCore import QSettings, Qt, QEvent
-from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton, QDockWidget, QSizePolicy, QSplitter
+from PyQt6.QtCore import QSettings, Qt, QSize
+from PyQt6.QtGui import QAction
+
 from .search_input import SearchInputSection
 from .norma_info import NormaInfoSection
 from .brocardi_dock import BrocardiDockWidget
@@ -19,26 +20,29 @@ class NormaViewer(QMainWindow):
         self.setWindowTitle(f"VisuaLex v{self.get_app_version()}")
         self.setGeometry(100, 100, 900, 700)
 
-        # Configurazione Logging
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        # Abilitare il nesting e animazioni nei dock
+        self.setDockNestingEnabled(True)
+        self.setDockOptions(
+            QMainWindow.DockOption.AnimatedDocks | 
+            QMainWindow.DockOption.AllowNestedDocks | 
+            QMainWindow.DockOption.AllowTabbedDocks
+        )
 
         # Setup UI components
         self.setup_ui()
 
+        # Configurare una cache manager
         self.cache_manager = CacheManager()
 
-        # Load saved theme settings
+        # Carica le impostazioni del tema salvate
         self.load_theme_settings()
 
     def setup_ui(self):
         # Impostazioni dell'applicazione
         self.settings = QSettings("NormaApp", "NormaViewer")
-        self.api_url = self.settings.value("api_url", "https:0.0.0.0:8000")  # URL di default
+        self.api_url = self.settings.value("api_url", "https://0.0.0.0:8000")  # URL di default
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-
-        # Creazione del Menu
-        self.create_menu()
         self.fonti_principali = FONTI_PRINCIPALI
 
         # Layout principale
@@ -48,23 +52,19 @@ class NormaViewer(QMainWindow):
         self.search_input_section = SearchInputSection(self)
         main_layout.addWidget(self.search_input_section)
 
-        # Dock per le informazioni sulla norma
-        self.create_collapsible_norma_info_dock()
-
-        # Dock per il Brocardi
-        self.create_collapsible_brocardi_dock()
-
-        # Dock per l'output
-        self.create_collapsible_output_dock()
-
-        # Imposta il widget centrale
+        # Widget centrale
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-        # Cache per risultati di ricerca
-        self.search_cache = {}
-    
+        # Creare i dock
+        self.create_collapsible_norma_info_dock()
+        self.create_collapsible_brocardi_dock()
+        self.create_collapsible_output_dock()
+
+        # Impostazioni di default per il widget centrale
+        self.centralWidget().setMinimumSize(350, 350)  # Dimensioni minime ragionevoli
+ 
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
         self.adjust_window_size()
@@ -72,8 +72,8 @@ class NormaViewer(QMainWindow):
 
     def resizeEvent(self, event):
         """Evento chiamato quando la finestra viene ridimensionata."""
-        self.adjust_window_size()
         super().resizeEvent(event)
+        self.adjust_window_size()
 
     def adjust_window_size(self):
         """Regola la dimensione della finestra per evitare che esca dai limiti dello schermo disponibile."""
@@ -100,28 +100,33 @@ class NormaViewer(QMainWindow):
 
     def create_collapsible_norma_info_dock(self):
         """Crea un dock widget collassabile per le informazioni sulla norma."""
-        self.norma_info_section = NormaInfoSection(self)  # Crea il widget della sezione
-        self.norma_info_dock = QDockWidget("Informazioni sulla Norma", self)  # Crea il QDockWidget
-        self.norma_info_dock.setWidget(self.norma_info_section)  # Imposta il widget della sezione come contenuto del dock
+        self.norma_info_section = NormaInfoSection(self)
+        self.norma_info_dock = QDockWidget("Informazioni sulla Norma", self)
+        self.norma_info_dock.setWidget(self.norma_info_section)
 
         # Impostazioni del dock
         self.norma_info_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable |
                                          QDockWidget.DockWidgetFeature.DockWidgetClosable |
                                          QDockWidget.DockWidgetFeature.DockWidgetFloatable)
-        self.norma_info_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)  # Aggiungi il dock alla finestra
-
-
+        
+        # Usa QSizePolicy con i valori corretti
+        self.norma_info_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
+        self.norma_info_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
 
     def create_collapsible_brocardi_dock(self):
         """Crea un dock widget collassabile per le informazioni sui Brocardi."""
-        self.brocardi_dock = BrocardiDockWidget(self)  # Questo è già un QDockWidget
+        self.brocardi_dock = BrocardiDockWidget(self)
+        self.brocardi_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
+        self.brocardi_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.brocardi_dock)
 
     def create_collapsible_output_dock(self):
         """Crea un dock widget collassabile per l'area di output."""
-        self.output_dock = OutputArea(self)  # Crea l'istanza di OutputArea direttamente
-        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)  # Aggiungi il dock alla finestra
+        self.output_dock = OutputArea(self)
+        self.output_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
+        self.output_dock.setMinimumSize(QSize(75, 37))  # Ridurre le dimensioni minime per i dock
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)
 
     def show_norma_info_dock(self):
         """Mostra o nasconde il dock delle informazioni sulla norma."""
@@ -143,7 +148,7 @@ class NormaViewer(QMainWindow):
             self.output_dock.show()
         else:
             self.output_dock.hide()
-        
+   
     def create_menu(self):
         # Barra dei menu
         menu_bar = self.menuBar()

@@ -322,7 +322,7 @@ QDockWidget {{
 }}
 
 QDockWidget::title {{
-    background: {border_color};
+    background: {background_color};
     padding: 5px;
     font-size: {font_size}px;
     color: {text_color};
@@ -417,7 +417,7 @@ ThemeDialog QGroupBox::title {{
     subcontrol-origin: margin;
     subcontrol-position: top left;
     left: 10px;
-    padding: 0 3px 0 3px;
+    padding-top: 20px;
     background-color: transparent;
 }}
 
