@@ -1,7 +1,6 @@
-from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton, QDockWidget, QSizePolicy, QSplitter
-from PyQt6.QtCore import QSettings, Qt, QSize
-from PyQt6.QtGui import QAction
-
+from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton, QDockWidget, QSizePolicy
+from PyQt6.QtCore import QSettings, Qt, QSize, QEvent
+from PyQt6.QtGui import QIcon, QAction, QKeySequence, QShortcut
 from .search_input import SearchInputSection
 from .norma_info import NormaInfoSection
 from .brocardi_dock import BrocardiDockWidget
@@ -12,7 +11,9 @@ from ..utils.helpers import get_resource_path
 from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
 import logging
+import subprocess
 import re
+import sys
 
 class NormaViewer(QMainWindow):
     def __init__(self):
@@ -64,6 +65,8 @@ class NormaViewer(QMainWindow):
 
         # Impostazioni di default per il widget centrale
         self.centralWidget().setMinimumSize(350, 350)  # Dimensioni minime ragionevoli
+        self.setup_shortcuts()
+
  
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
@@ -111,7 +114,7 @@ class NormaViewer(QMainWindow):
         
         # Usa QSizePolicy con i valori corretti
         self.norma_info_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
-        self.norma_info_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
+        self.norma_info_dock.setMinimumSize(QSize(37, 25))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
 
     def create_collapsible_brocardi_dock(self):
@@ -340,3 +343,23 @@ class NormaViewer(QMainWindow):
     def show_message(self, title, message):
         """Mostra un messaggio popup con il titolo e il messaggio forniti."""
         QMessageBox.information(self, title, message)
+        
+    def setup_shortcuts(self):
+        """Configura le scorciatoie da tastiera."""
+        # Scorciatoia per il tasto 'Invio' che avvia la ricerca
+        enter_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Return), self)
+        enter_shortcut.activated.connect(self.on_search_button_clicked)
+
+        # Scorciatoia per 'Ctrl+R' che riavvia l'applicazione
+        restart_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
+        restart_shortcut.activated.connect(self.restart_application)
+    
+    def restart_application(self):
+        """Riavvia l'applicazione quando si preme Ctrl+R."""
+        QMessageBox.information(self, "Riavvio", "Riavvio dell'applicazione...")
+        # Salva il percorso dell'eseguibile corrente
+        python = sys.executable
+        # Comando per riavviare l'applicazione
+        subprocess.Popen([python] + sys.argv)
+        # Chiudi l'applicazione corrente
+        QApplication.quit()
