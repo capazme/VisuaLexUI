@@ -33,7 +33,7 @@ class NormaViewer(QMainWindow):
     def setup_ui(self):
         # Impostazioni dell'applicazione
         self.settings = QSettings("NormaApp", "NormaViewer")
-        self.api_url = self.settings.value("api_url", "https://0.0.0.0:8000")
+        self.api_url = self.settings.value("api_url", "https:0.0.0.0:8000")  # URL di default
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
@@ -44,14 +44,26 @@ class NormaViewer(QMainWindow):
         # Layout principale
         main_layout = QVBoxLayout()
 
-        # Sezione di input di ricerca con widget centrale
+        # Sezione di input di ricerca
         self.search_input_section = SearchInputSection(self)
-        self.setCentralWidget(self.search_input_section)
+        main_layout.addWidget(self.search_input_section)
 
-        # Aggiunta di Dock widget per sezioni collassabili
+        # Dock per le informazioni sulla norma
         self.create_collapsible_norma_info_dock()
+
+        # Dock per il Brocardi
         self.create_collapsible_brocardi_dock()
+
+        # Dock per l'output
         self.create_collapsible_output_dock()
+
+        # Imposta il widget centrale
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
+
+        # Cache per risultati di ricerca
+        self.search_cache = {}
     
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
@@ -88,32 +100,50 @@ class NormaViewer(QMainWindow):
 
     def create_collapsible_norma_info_dock(self):
         """Crea un dock widget collassabile per le informazioni sulla norma."""
-        self.norma_info_dock = QDockWidget("Informazioni sulla Norma", self)
-        self.norma_info_section = NormaInfoSection(self)
-        self.norma_info_dock.setWidget(self.norma_info_section)
+        self.norma_info_section = NormaInfoSection(self)  # Crea il widget della sezione
+        self.norma_info_dock = QDockWidget("Informazioni sulla Norma", self)  # Crea il QDockWidget
+        self.norma_info_dock.setWidget(self.norma_info_section)  # Imposta il widget della sezione come contenuto del dock
+
+        # Impostazioni del dock
         self.norma_info_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable |
                                          QDockWidget.DockWidgetFeature.DockWidgetClosable |
                                          QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.norma_info_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)  # Aggiungi il dock alla finestra
+
+
 
     def create_collapsible_brocardi_dock(self):
         """Crea un dock widget collassabile per le informazioni sui Brocardi."""
-        self.brocardi_dock = BrocardiDockWidget(self)
+        self.brocardi_dock = BrocardiDockWidget(self)  # Questo è già un QDockWidget
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.brocardi_dock)
 
     def create_collapsible_output_dock(self):
         """Crea un dock widget collassabile per l'area di output."""
-        self.output_dock = OutputArea(self)  # Crea l'oggetto dock
-        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)
-    
-    def toggle_dock_visibility(self, dock_widget):
-        """Funzione helper per mostrare o nascondere un dock widget."""
-        if dock_widget.isVisible():
-            dock_widget.hide()
+        self.output_dock = OutputArea(self)  # Crea l'istanza di OutputArea direttamente
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)  # Aggiungi il dock alla finestra
+
+    def show_norma_info_dock(self):
+        """Mostra o nasconde il dock delle informazioni sulla norma."""
+        if not self.norma_info_dock.isVisible():
+            self.norma_info_dock.show()
         else:
-            dock_widget.show()
-   
+            self.norma_info_dock.hide()
+
+    def show_brocardi_dock(self):
+        """Mostra o nasconde il dock del Brocardi."""
+        if not self.brocardi_dock.isVisible():
+            self.brocardi_dock.show()
+        else:
+            self.brocardi_dock.hide()
+
+    def show_output_dock(self):
+        """Mostra o nasconde il dock di output."""
+        if not self.output_dock.isVisible():
+            self.output_dock.show()
+        else:
+            self.output_dock.hide()
+        
     def create_menu(self):
         # Barra dei menu
         menu_bar = self.menuBar()

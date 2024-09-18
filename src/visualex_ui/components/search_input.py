@@ -1,7 +1,7 @@
 # visualex_ui/components/search_input.py
 from PyQt6.QtWidgets import (
     QGroupBox, QFormLayout, QComboBox, QLineEdit, QPushButton, QProgressBar, QMessageBox,
-    QRadioButton, QButtonGroup, QDateEdit, QHBoxLayout
+    QRadioButton, QButtonGroup, QDateEdit, QVBoxLayout, QHBoxLayout
 )
 from PyQt6.QtCore import QDate
 
@@ -12,16 +12,19 @@ class SearchInputSection(QGroupBox):
         self.api_url = self.parent.api_url  # Riferimento all'URL API dal genitore
         self.setup_ui()
 
-
     def setup_ui(self):
-        layout = QFormLayout()
+        # Layout principale verticale
+        main_layout = QVBoxLayout()
+
+        # Aggiungi il layout del form per i campi di input
+        form_layout = QFormLayout()
 
         # Input per il tipo di atto (ComboBox)
         self.act_type_input = QComboBox()
         self.act_type_input.addItems(self.parent.fonti_principali)
         self.act_type_input.currentIndexChanged.connect(self.update_input_fields)
         self.act_type_input.setToolTip("Seleziona il tipo di atto legislativo da cercare.")
-        layout.addRow("Tipo di Atto:", self.act_type_input)
+        form_layout.addRow("Tipo di Atto:", self.act_type_input)
 
         # Campi di input aggiuntivi (data, numero atto, numero articolo)
         self.date_input = QLineEdit()
@@ -33,7 +36,7 @@ class SearchInputSection(QGroupBox):
         # New radio button for annex number
         self.annex_radio_button = QRadioButton("Inserisci Numero Allegato")
         self.annex_radio_button.setToolTip("Seleziona per inserire il numero dell'allegato.")
-        self.annex_radio_button.toggled.connect(self.toggle_annex_input)  # Connect to function to enable/disable
+        self.annex_radio_button.toggled.connect(self.toggle_annex_input)
 
         # New input for annex number
         self.annex_number_input = QLineEdit()
@@ -46,13 +49,13 @@ class SearchInputSection(QGroupBox):
         act_annex_layout.addWidget(self.annex_radio_button)
         act_annex_layout.addWidget(self.annex_number_input)
 
-        layout.addRow("Data:", self.date_input)
-        layout.addRow("Numero Atto:", act_annex_layout)
+        form_layout.addRow("Data:", self.date_input)
+        form_layout.addRow("Numero Atto:", act_annex_layout)
 
         # Input per il numero di articolo
         self.article_input = QLineEdit()
         self.article_input.setToolTip("Inserisci il numero dell'articolo da cercare.")
-        layout.addRow("Numero Articolo:", self.article_input)
+        form_layout.addRow("Numero Articolo:", self.article_input)
 
         # Selezione versione e data di vigenza
         self.version_group = QButtonGroup(self)
@@ -77,38 +80,56 @@ class SearchInputSection(QGroupBox):
         version_layout = QHBoxLayout()
         version_layout.addWidget(self.version_originale)
         version_layout.addWidget(self.version_vigente)
-        layout.addRow("Versione:", version_layout)
-        layout.addRow("Data di Vigenza:", self.vigency_date_input)
+        form_layout.addRow("Versione:", version_layout)
+        form_layout.addRow("Data di Vigenza:", self.vigency_date_input)
 
         # Pulsante di ricerca
         self.search_button = QPushButton("Cerca Norma")
         self.search_button.setToolTip("Clicca per avviare la ricerca della norma.")
         # Collegamento del pulsante di ricerca al metodo di ricerca del parent
         self.search_button.clicked.connect(self.parent.on_search_button_clicked)
-        layout.addRow(self.search_button)
+        form_layout.addRow(self.search_button)
+
+        # Aggiungi il layout del form al layout principale
+        main_layout.addLayout(form_layout)
 
         # Barra di caricamento per la ricerca
         self.search_progress_bar = QProgressBar()
         self.search_progress_bar.setVisible(False)
-        layout.addRow(self.search_progress_bar)
+        main_layout.addWidget(self.search_progress_bar)  # Cambia da addRow a addWidget
 
-        self.setLayout(layout)
+        # Pulsante per mostrare il dock delle informazioni sulla norma
+        dock_buttons_layout = QHBoxLayout()
+
+        self.show_norma_info_button = QPushButton("Mostra Norma Info")
+        self.show_norma_info_button.clicked.connect(self.parent.show_norma_info_dock)
+        dock_buttons_layout.addWidget(self.show_norma_info_button)
+
+        self.show_brocardi_button = QPushButton("Mostra Brocardi")
+        self.show_brocardi_button.clicked.connect(self.parent.show_brocardi_dock)
+        dock_buttons_layout.addWidget(self.show_brocardi_button)
+
+        self.show_output_button = QPushButton("Mostra Output")
+        self.show_output_button.clicked.connect(self.parent.show_output_dock)
+        dock_buttons_layout.addWidget(self.show_output_button)
+
+        # Aggiungi il layout dei pulsanti al layout principale
+        main_layout.addLayout(dock_buttons_layout)
+
+        self.setLayout(main_layout)
         self.update_input_fields()  # Inizializza i campi di input
 
     def toggle_annex_input(self):
-        """
-        Enable or disable the annex number input based on the radio button selection.
-        """
+        """Enable or disable the annex number input based on the radio button selection."""
         is_checked = self.annex_radio_button.isChecked()
         self.annex_number_input.setEnabled(is_checked)
 
     def toggle_vigency_date(self):
-        """
-        Enable or disable the vigency date input based on the version selection.
-        """
+        """Enable or disable the vigency date input based on the version selection."""
         self.vigency_date_input.setEnabled(self.version_vigente.isChecked())
 
     def update_input_fields(self):
+        """Updates the input fields based on the selected act type."""
         selected_act_type = self.act_type_input.currentText()
         allowed_types = ['legge', 'decreto legge', 'decreto legislativo', 'd.p.r.', 'Regolamento UE', 'Direttiva UE', 'regio decreto']
 
