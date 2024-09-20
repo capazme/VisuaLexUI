@@ -7,8 +7,6 @@ class NormaInfoSection(QGroupBox):
         self.parent = parent
         self.setup_ui()
 
-    
-
     def setup_ui(self):
         self.layout = QFormLayout()
 
@@ -59,9 +57,6 @@ class NormaInfoSection(QGroupBox):
             # Imposta dimensioni minime ragionevoli per evitare che il widget si espanda inutilmente
         self.setMaximumHeight(230)
         self.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum))
-
-
-
 
     def update_info(self, normavisitata):
         """
