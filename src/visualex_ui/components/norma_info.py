@@ -25,7 +25,7 @@ class NormaInfoSection(QGroupBox):
         self.urn_label = QLabel()
         self.urn_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         self.urn_label.setOpenExternalLinks(True)
-        self.urn_label.setWordWrap(False)  # Abilita il wrapping del testo
+        self.urn_label.setWordWrap(False)  
         
         # Imposta la QLabel come widget della QScrollArea
         self.urn_scroll_area.setWidget(self.urn_label)

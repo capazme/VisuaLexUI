@@ -16,15 +16,23 @@ class BrocardiDockWidget(QDockWidget):
         self.brocardi_info_widget = QWidget()
         brocardi_layout = QVBoxLayout()
 
+        # Crea una QScrollArea per la position_label con scroll orizzontale abilitato
+        position_scroll_area = QScrollArea()
+        position_scroll_area.setFixedHeight(40)
+        position_scroll_area.setWidgetResizable(True)
+        position_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)  # Scrollbar orizzontale solo quando necessario
+        position_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar verticale
+
         # Etichetta per la posizione dei Brocardi
         self.position_label = QLabel()
-        brocardi_layout.addWidget(self.position_label)
+        self.position_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction | Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.position_label.setWordWrap(False)  # Permette di avvolgere il testo se necessario
+        self.position_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        self.position_label.setOpenExternalLinks(True)
 
-        # Etichetta per il link dei Brocardi
-        self.brocardi_link_label = QLabel()
-        self.brocardi_link_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
-        self.brocardi_link_label.setOpenExternalLinks(True)
-        brocardi_layout.addWidget(self.brocardi_link_label)
+        position_scroll_area.setWidget(self.position_label)
+
+        brocardi_layout.addWidget(position_scroll_area)  # Aggiungi la scroll area al layout
 
         # Tabs per visualizzare diverse sezioni di Brocardi
         self.tabs = QTabWidget()
@@ -53,8 +61,10 @@ class BrocardiDockWidget(QDockWidget):
 
         # Se la posizione è valida, aggiorna il contenuto
         logging.info(f"Aggiungo informazioni Brocardi con posizione: {position}")
-        self.position_label.setText(position)
-        self.brocardi_link_label.setText(f'<a href="{link}">{link}</a>')
+        
+        # Incorpora il link all'interno della posizione e rendi l'etichetta cliccabile
+        html_text = f'<a href="{link}">{position}</a>'
+        self.position_label.setText(html_text)
 
         # Aggiungi sezioni dinamiche per le informazioni sui Brocardi (se presenti)
         for section_name, content in brocardi_info.items():
