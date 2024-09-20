@@ -11,6 +11,7 @@ from ..utils.helpers import get_resource_path
 from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
 from ..tools.text_op import clean_text
+from ..utils.updater import UpdateNotifier
 import logging
 import subprocess
 import re
@@ -21,6 +22,9 @@ class NormaViewer(QMainWindow):
         super().__init__()
         self.setWindowTitle(f"VisuaLex v{self.get_app_version()}")
         self.setGeometry(100, 100, 900, 700)
+        # Inizializza UpdateNotifier con un'icona di aggiornamento
+        self.update_icon = self.create_update_icon()
+        self.update_notifier = UpdateNotifier(self, self.update_icon)
 
         # Abilitare il nesting e animazioni nei dock
         self.setDockNestingEnabled(True)
@@ -381,3 +385,21 @@ class NormaViewer(QMainWindow):
         subprocess.Popen([python] + sys.argv)
         # Chiudi l'applicazione corrente
         QApplication.quit()
+
+    def create_update_icon(self):
+        """
+        Crea un'icona di notifica per l'aggiornamento e la aggiunge alla barra di stato.
+        """
+        update_action = QAction(QIcon(get_resource_path('resources/icon_update.png')), "Aggiornamento Disponibile", self)
+        update_action.setToolTip("Clicca per verificare l'aggiornamento")
+        update_action.triggered.connect(self.update_notifier.launch_external_updater)
+
+        # Aggiungi l'icona alla barra di stato
+        self.statusBar().addAction(update_action)
+        update_action.setVisible(False)  # Inizialmente nascosto
+        return update_action
+
+    def check_for_updates(self):
+        """Controlla se ci sono aggiornamenti disponibili e avvisa l'utente."""
+        local_version = self.get_app_version()
+        self.update_notifier.check_for_update(local_version)
