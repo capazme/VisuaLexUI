@@ -85,7 +85,7 @@ def generate_urn(act_type, date=None, act_number=None, article=None, annex=None,
     
     # Handle EURLEX cases
     if normalized_act_type in EURLEX:  # Assuming EURLEX is a dictionary defined elsewhere
-        if normalized_act_type in {"CFDUE", "TUE", "TFUE"}:
+        if normalized_act_type in {"CDFUE", "TUE", "TFUE"}:
             logging.info(f"Returning EURLEX URN for trattato: {EURLEX[normalized_act_type]}")
             return EURLEX[normalized_act_type]
         else:

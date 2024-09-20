@@ -1,6 +1,7 @@
 # visualex_ui/components/brocardi_dock.py
 from PyQt6.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QLabel, QTabWidget, QPushButton, QListWidget, QTextBrowser, QListWidgetItem
 from PyQt6.QtCore import Qt, QSize
+import logging
 
 class BrocardiDockWidget(QDockWidget):
     def __init__(self, parent):
@@ -39,19 +40,29 @@ class BrocardiDockWidget(QDockWidget):
     def add_brocardi_info(self, position, link, brocardi_info):
         """
         Aggiunge informazioni sui Brocardi al widget, inclusa la posizione e il link.
+        Mostra il dock solo se la posizione è valida.
         """
+        # Controlla se la posizione è valida e non vuota
+        if not position or position == "Not Available" or position.strip() == "":
+            logging.info("La posizione di Brocardi non è valida, nascondo il dock.")
+            self.hide()  # Non mostrare il dock se 'position' è vuota o non valida
+            return
+
+        # Se la posizione è valida, aggiorna il contenuto
+        logging.info(f"Aggiungo informazioni Brocardi con posizione: {position}")
         self.position_label.setText(position)
         self.brocardi_link_label.setText(f'<a href="{link}">{link}</a>')
 
-        # Aggiungi sezioni dinamiche per le informazioni sui Brocardi
+        # Aggiungi sezioni dinamiche per le informazioni sui Brocardi (se presenti)
         for section_name, content in brocardi_info.items():
             if section_name in ['Brocardi', 'Massime'] and content:
                 self.add_dynamic_list_tab(section_name, content)
             elif section_name in ['Spiegazione', 'Ratio'] and content:
                 self.add_dynamic_text_tab(section_name, content)
 
-        # Mostra il widget dopo aver aggiunto le informazioni
+        # Mostra il dock se ci sono informazioni valide
         self.show()
+
 
     def add_dynamic_list_tab(self, section_name, content):
         """

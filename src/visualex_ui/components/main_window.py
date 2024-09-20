@@ -330,14 +330,23 @@ class NormaViewer(QMainWindow):
         cleaned_text = re.sub(r'\n\s*\n', '\n', normavisitata._article_text.strip()) if normavisitata._article_text else ''
         self.output_dock.display_text(cleaned_text)  # Usa self.output_dock
 
-        # Aggiunge informazioni sui Brocardi al widget dock
-        if normavisitata._brocardi_info:
-            brocardi_info = normavisitata._brocardi_info
-            if brocardi_info.get('position', None):
-                position = brocardi_info.get('position', "Posizione non disponibile")
+        # Verifica se ci sono informazioni valide per i Brocardi basate su 'position'
+        brocardi_info = normavisitata._brocardi_info if normavisitata._brocardi_info else None
+        if brocardi_info:
+            position = brocardi_info.get('position', "").strip()
+
+            if position and position != "Not Available":  # Controlla che 'position' sia valido e non vuoto
+                logging.info(f"Mostrando il dock Brocardi con la posizione: {position}")
                 link = brocardi_info.get('link', "#")
                 self.brocardi_dock.add_brocardi_info(position, link, brocardi_info.get('info', {}))
-
+                self.brocardi_dock.show()  # Mostra il dock se la posizione è valida
+            else:
+                logging.info("La posizione di Brocardi non è valida o è vuota, nascondo il dock.")
+                self.brocardi_dock.hide()  # Nascondi il dock se 'position' è vuoto o non valido
+        else:
+            logging.info("Informazioni Brocardi non presenti, nascondo il dock.")
+            self.brocardi_dock.hide()
+        
     def clipboard(self):
         """Ritorna l'oggetto clipboard dell'applicazione."""
         return QApplication.clipboard()
