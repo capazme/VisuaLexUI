@@ -4,17 +4,6 @@
 
 **VisuaLexUI** è un'applicazione GUI (interfaccia grafica) basata su Python e costruita con PyQt6. Permette agli utenti di cercare e visualizzare norme legali, personalizzare i temi dell'interfaccia e gestire le interazioni API per il recupero di dati normativi.
 
-## Indice
-
-- [Caratteristiche](#caratteristiche)
-- [Introduzione](#introduzione)
-- [Installazione](#installazione)
-- [Utilizzo](#utilizzo)
-- [Dipendenze](#dipendenze)
-- [Contribuire](#contribuire)
-- [Licenza](#licenza)
-- [Contatti](#contatti)
-
 ## Caratteristiche
 
 * **Ricerca Normativa:** Consente di cercare norme legali per tipo di atto, data, numero di articolo e versione (originale o vigente).
