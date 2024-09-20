@@ -68,7 +68,6 @@ class NormaViewer(QMainWindow):
         self.centralWidget().setMinimumSize(350, 350)  # Dimensioni minime ragionevoli
         self.setup_shortcuts()
 
- 
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
         self.adjust_window_size()

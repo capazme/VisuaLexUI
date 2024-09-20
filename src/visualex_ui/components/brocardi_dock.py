@@ -63,7 +63,6 @@ class BrocardiDockWidget(QDockWidget):
         # Mostra il dock se ci sono informazioni valide
         self.show()
 
-
     def add_dynamic_list_tab(self, section_name, content):
         """
         Crea una tab dinamica con una lista di item per Brocardi o Massime.
