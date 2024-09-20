@@ -16,10 +16,12 @@ class NormaInfoSection(QGroupBox):
 
         # Crea una QScrollArea per racchiudere il QLabel dell'URN
         self.urn_scroll_area = QScrollArea()
-        self.urn_scroll_area.setFixedSize(QSize(300, 30))
+        self.urn_scroll_area.setFixedHeight(35)
+        self.urn_scroll_area.setMinimumWidth(300)
+        self.urn_scroll_area.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed))
         self.urn_scroll_area.setWidgetResizable(True)  # Permette di adattare il contenuto
         self.urn_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)  # Scrollbar orizzontale
-        self.urn_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)  # Scrollbar verticale, se necessario
+        self.urn_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Scrollbar verticale, se necessario
 
         # Etichetta per mostrare l'URN
         self.urn_label = QLabel()
