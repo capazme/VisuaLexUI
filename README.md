@@ -1,6 +1,6 @@
 # VisuaLexUI
 
-![Versione](https://img.shields.io/badge/version-0.0.5-blue) ![Licenza](https://img.shields.io/badge/license-MIT-green) ![Contributi](https://img.shields.io/badge/contributions-welcome-orange)
+![Versione](https://img.shields.io/badge/version-0.5.2-blue) ![Licenza](https://img.shields.io/badge/license-MIT-green) ![Contributi](https://img.shields.io/badge/contributions-welcome-orange)
 
 **VisuaLexUI** è un'applicazione GUI (interfaccia grafica) basata su Python e costruita con PyQt6. Permette agli utenti di cercare e visualizzare norme legali, personalizzare i temi dell'interfaccia e gestire le interazioni API per il recupero di dati normativi.
 
@@ -17,10 +17,12 @@
 
 ## Caratteristiche
 
-- **Ricerca Normativa:** Consente di cercare norme legali per tipo di atto, data, numero di articolo e versione (originale o vigente).
-- **Temi Personalizzabili:** Personalizza l'aspetto dell'applicazione tramite un dialogo dedicato ai temi.
-- **Integrazione API:** Recupera dati da un'API remota (VisuaLexAPI) con gestione degli errori, ripetizioni dei tentativi e caching.
-- **Visualizzazione Informazioni Brocardi:** Mostra metadati giuridici dettagliati, incluse informazioni dal sito brocardi.com.
+* **Ricerca Normativa:** Consente di cercare norme legali per tipo di atto, data, numero di articolo e versione (originale o vigente).
+* **Temi Personalizzabili:** Personalizza l'aspetto dell'applicazione tramite un dialogo dedicato ai temi.
+* **Integrazione API:** Recupera dati da un'API remota (VisuaLexAPI) con gestione degli errori, ripetizioni dei tentativi e caching.
+* **Visualizzazione Informazioni Brocardi:** Mostra metadati giuridici dettagliati, incluse informazioni dal sito brocardi.com.
+
+![Screenshot](src/visualex_ui/resources/screen.png)
 
 ## Introduzione
 
