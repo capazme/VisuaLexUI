@@ -10,6 +10,7 @@ from ..network.data_fetcher import FetchDataThread
 from ..utils.helpers import get_resource_path
 from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
+from ..tools.text_op import clean_text
 import logging
 import subprocess
 import re
@@ -52,6 +53,9 @@ class NormaViewer(QMainWindow):
 
         # Sezione di input di ricerca
         self.search_input_section = SearchInputSection(self)
+        #self.search_input_section.setMinimumWidth(400)
+        #self.search_input_section.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed))
+
         main_layout.addWidget(self.search_input_section)
 
         # Widget centrale
@@ -65,7 +69,7 @@ class NormaViewer(QMainWindow):
         self.create_collapsible_output_dock()
 
         # Impostazioni di default per il widget centrale
-        self.centralWidget().setMinimumSize(350, 350)  # Dimensioni minime ragionevoli
+        self.centralWidget().setMinimumSize(350, 420)  # Dimensioni minime ragionevoli
         self.setup_shortcuts()
 
     def moveEvent(self, event):
@@ -109,19 +113,21 @@ class NormaViewer(QMainWindow):
 
         # Impostazioni del dock
         self.norma_info_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable |
-                                         QDockWidget.DockWidgetFeature.DockWidgetClosable |
-                                         QDockWidget.DockWidgetFeature.DockWidgetFloatable)
+                                        QDockWidget.DockWidgetFeature.DockWidgetClosable |
+                                        QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         
-        # Usa QSizePolicy con i valori corretti
+        # Usa QSizePolicy con espandibilità per permettere il ridimensionamento
         self.norma_info_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
-        #self.norma_info_dock.setMinimumSize(QSize(37, 25))  # Ridurre le dimensioni minime per i dock
+        self.norma_info_dock.setMinimumSize(QSize(200, 150))  # Dimensioni minime ragionevoli
+        self.norma_info_dock.setVisible(False)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
+
 
     def create_collapsible_brocardi_dock(self):
         """Crea un dock widget collassabile per le informazioni sui Brocardi."""
         self.brocardi_dock = BrocardiDockWidget(self)
         self.brocardi_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
-        #self.brocardi_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
+        self.brocardi_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.brocardi_dock)
 
     def create_collapsible_output_dock(self):
@@ -313,6 +319,7 @@ class NormaViewer(QMainWindow):
 
     def display_data(self, normavisitata):
         """Visualizza i dati normativi ricevuti e gestisce dinamicamente le sezioni informative."""
+        
         # Pulizia delle tab dinamiche esistenti
         self.brocardi_dock.clear_dynamic_tabs()
 
@@ -325,8 +332,8 @@ class NormaViewer(QMainWindow):
         # Aggiorna la sezione di informazioni della norma
         self.norma_info_section.update_info(normavisitata)
 
-        # Pulisce e visualizza il testo della norma
-        cleaned_text = re.sub(r'\n\s*\n', '\n', normavisitata._article_text.strip()) if normavisitata._article_text else ''
+        # Pulisci e visualizza il testo della norma
+        cleaned_text = clean_text(normavisitata._article_text) if normavisitata._article_text else ''
         self.output_dock.display_text(cleaned_text)  # Usa self.output_dock
 
         # Verifica se ci sono informazioni valide per i Brocardi basate su 'position'
@@ -345,7 +352,8 @@ class NormaViewer(QMainWindow):
         else:
             logging.info("Informazioni Brocardi non presenti, nascondo il dock.")
             self.brocardi_dock.hide()
-        
+
+    
     def clipboard(self):
         """Ritorna l'oggetto clipboard dell'applicazione."""
         return QApplication.clipboard()

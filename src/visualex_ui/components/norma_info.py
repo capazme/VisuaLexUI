@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QGroupBox, QFormLayout, QLabel, QPushButton, QApplication, QMessageBox
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QGroupBox, QFormLayout, QLabel, QPushButton, QApplication, QMessageBox, QScrollArea, QSizePolicy
+from PyQt6.QtCore import Qt, QSize
 
 class NormaInfoSection(QGroupBox):
     def __init__(self, parent):
@@ -7,20 +7,42 @@ class NormaInfoSection(QGroupBox):
         self.parent = parent
         self.setup_ui()
 
+    
+
     def setup_ui(self):
         self.layout = QFormLayout()
 
-        # Etichette per mostrare le informazioni sulla norma
+            # Configurazione del layout senza spaziatura aggiuntiva
+        #self.layout.setContentsMargins(0, 0, 0, 0)
+        #self.layout.setSpacing(2)  # Imposta uno spacing più compatto
+
+        # Crea una QScrollArea per racchiudere il QLabel dell'URN
+        self.urn_scroll_area = QScrollArea()
+        self.urn_scroll_area.setFixedSize(QSize(300, 30))
+        self.urn_scroll_area.setWidgetResizable(True)  # Permette di adattare il contenuto
+        self.urn_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)  # Scrollbar orizzontale
+        self.urn_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)  # Scrollbar verticale, se necessario
+
+        # Etichetta per mostrare l'URN
         self.urn_label = QLabel()
         self.urn_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
-        self.urn_label.setOpenExternalLinks(True)  # Permette di cliccare sui link se presenti
+        self.urn_label.setOpenExternalLinks(True)
+        self.urn_label.setWordWrap(False)  # Abilita il wrapping del testo
         
+        # Imposta la QLabel come widget della QScrollArea
+        self.urn_scroll_area.setWidget(self.urn_label)
+
         self.tipo_atto_label = QLabel()
+        self.tipo_atto_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)  # Allineamento in alto a sinistra
+
         self.data_label = QLabel()
+        self.data_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
         self.numero_atto_label = QLabel()
+        self.numero_atto_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         # Aggiunta delle etichette al layout
-        self.layout.addRow("URN:", self.urn_label)
+        self.layout.addRow("URN:", self.urn_scroll_area)  # Aggiungi la QScrollArea invece della QLabel direttamente
         self.layout.addRow("Tipo di Atto:", self.tipo_atto_label)
 
         # Aggiungi righe con le etichette di testo per Data e Numero Atto
@@ -34,37 +56,44 @@ class NormaInfoSection(QGroupBox):
         self.layout.addRow(self.copy_info_button)
 
         self.setLayout(self.layout)
+            # Imposta dimensioni minime ragionevoli per evitare che il widget si espanda inutilmente
+        self.setMaximumHeight(230)
+        self.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum))
+
+
+
 
     def update_info(self, normavisitata):
         """
         Metodo per aggiornare le informazioni della norma visualizzate nella sezione.
         """
         if not normavisitata:
-            # Gestisci il caso in cui non ci sono dati da mostrare
             self.clear_info()
             return
 
         # Popola le etichette con le informazioni della norma
-        self.urn_label.setText(f'<a href="{normavisitata.urn}">{normavisitata.urn}</a>')
+        full_url = normavisitata.urn
+        self.urn_label.setText(f'<a href="{full_url}">{full_url}</a>')  # Mostra l'URL completo all'interno della scroll area
+
         self.tipo_atto_label.setText(normavisitata.norma.tipo_atto_str)
 
-        # Verifica se il campo "data" è presente e mostra/nasconde l'etichetta di conseguenza
+        # Gestione della data
         if normavisitata.norma.data:
             self.data_label.setText(normavisitata.norma.data)
             self.data_label.setVisible(True)
-            self.layout.labelForField(self.data_label).setVisible(True)  # Mostra l'etichetta di testo "Data:"
+            self.layout.labelForField(self.data_label).setVisible(True)
         else:
             self.data_label.setVisible(False)
-            self.layout.labelForField(self.data_label).setVisible(False)  # Nascondi l'etichetta di testo "Data:"
+            self.layout.labelForField(self.data_label).setVisible(False)
 
-        # Verifica se il campo "numero_atto" è presente e mostra/nasconde l'etichetta di conseguenza
+        # Gestione del numero di atto
         if normavisitata.norma.numero_atto:
             self.numero_atto_label.setText(normavisitata.norma.numero_atto)
             self.numero_atto_label.setVisible(True)
-            self.layout.labelForField(self.numero_atto_label).setVisible(True)  # Mostra l'etichetta di testo "Numero Atto:"
+            self.layout.labelForField(self.numero_atto_label).setVisible(True)
         else:
             self.numero_atto_label.setVisible(False)
-            self.layout.labelForField(self.numero_atto_label).setVisible(False)  # Nascondi l'etichetta di testo "Numero Atto:"
+            self.layout.labelForField(self.numero_atto_label).setVisible(False)
 
     def clear_info(self):
         """

@@ -1,6 +1,7 @@
 # visualex_ui/components/brocardi_dock.py
-from PyQt6.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QLabel, QTabWidget, QPushButton, QListWidget, QTextBrowser, QListWidgetItem
+from PyQt6.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QLabel, QTabWidget, QPushButton, QListWidget, QTextBrowser, QListWidgetItem, QScrollArea, QSizePolicy
 from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QTextOption
 import logging
 
 class BrocardiDockWidget(QDockWidget):
@@ -27,6 +28,7 @@ class BrocardiDockWidget(QDockWidget):
 
         # Tabs per visualizzare diverse sezioni di Brocardi
         self.tabs = QTabWidget()
+        self.tabs.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))  # Politica di espansione
         self.dynamic_tabs = {}  # Dizionario per le tabs dinamiche
         brocardi_layout.addWidget(self.tabs)
 
@@ -36,6 +38,7 @@ class BrocardiDockWidget(QDockWidget):
         
         # Nascondi il widget all'inizio
         self.hide()
+
 
     def add_brocardi_info(self, position, link, brocardi_info):
         """
@@ -68,17 +71,24 @@ class BrocardiDockWidget(QDockWidget):
         Crea una tab dinamica con una lista di item per Brocardi o Massime.
         """
         tab = QWidget()
+
+        # Crea il QListWidget con elementi wrappati
         list_widget = QListWidget()
         list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
-        list_widget.setStyleSheet("QListWidget::item { border: 1px solid #4E878C; margin: 4px; padding: 8px; }")  # Migliora lo stile degli item
+        list_widget.setStyleSheet("QListWidget::item { border: 1px solid #4E878C; margin: 4px; padding: 8px; }")
 
-        # Usa il metodo create_collapsible_list_item per aggiungere gli elementi
+        # Aggiungi gli item alla lista
         for item_text in content:
             item_text = item_text.strip()
             self.create_collapsible_list_item(item_text, list_widget)
 
+        # Avvolgi il QListWidget in una QScrollArea
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(list_widget)
+
         tab_layout = QVBoxLayout()
-        tab_layout.addWidget(list_widget)
+        tab_layout.addWidget(scroll_area)
         tab.setLayout(tab_layout)
 
         # Aggiungi la tab dinamica al widget tabs
@@ -90,18 +100,26 @@ class BrocardiDockWidget(QDockWidget):
         Crea una tab dinamica con un QTextBrowser per sezioni come Spiegazione e Ratio.
         """
         tab = QWidget()
+
+        # Crea un QTextBrowser con wrapping abilitato
         text_edit = QTextBrowser()
         text_edit.setReadOnly(True)
-        cleaned_content = content.strip()
-        text_edit.setText(cleaned_content)
+        text_edit.setWordWrapMode(QTextOption.WrapMode.WordWrap)  # Abilita il wrapping del testo
+        text_edit.setText(content.strip())
 
+        # Avvolgi il QTextBrowser in una QScrollArea per gestire contenuti lunghi
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(text_edit)
+        
         tab_layout = QVBoxLayout()
-        tab_layout.addWidget(text_edit)
+        tab_layout.addWidget(scroll_area)
         tab.setLayout(tab_layout)
 
         # Aggiungi la tab dinamica al widget tabs
         self.tabs.addTab(tab, section_name)
         self.dynamic_tabs[section_name] = tab
+
 
     def create_collapsible_list_item(self, text, parent_widget):
         """

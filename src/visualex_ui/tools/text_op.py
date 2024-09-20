@@ -196,3 +196,37 @@ def get_annex_from_urn(urn):
     
     logging.debug("No annex found in URN")
     return None
+
+def clean_text(article_text):
+    """
+    Pulisce il testo dell'articolo:
+    - Rimuove le newline inutili.
+    - Non va a capo dopo il numero del comma.
+    - Mantiene le newline significative.
+    - Rimuove le newline all'interno delle doppie parentesi (( ... )).
+    """
+    if not article_text:
+        return ''
+
+    # Step 1: Rimuovi newline all'interno delle parentesi doppie (( ... ))
+    article_text = re.sub(r'\(\([\n\s]*(.*?)\n*\)\)', r'((\1))', article_text, flags=re.DOTALL)
+
+    # Step 2: Mantieni newline dopo Articoli (es. "Art. 1") ma non dopo i commi (es. "1.", "1-bis.")
+    # Articolo e titoli devono essere seguiti da due newline, mentre i commi no.
+    cleaned_text = re.sub(r'(\bArt\.\s*\d+)\n+', r'\1\n\n', article_text)
+    
+    # Correzione: Rimuovi newline dopo il numero dei commi
+    # Sostituisci la newline subito dopo i numeri dei commi con uno spazio
+    cleaned_text = re.sub(r'(\b\d+(-[a-z]+)?\.)\s*\n+', r'\1 ', cleaned_text)
+
+    # Step 3: Rimuovi multiple newline (più di 2) e sostituisci con singole newline
+    cleaned_text = re.sub(r'\n{3,}', '\n\n', cleaned_text)
+
+    # Step 4: Rimuovi spazi vuoti che precedono o seguono una newline
+    cleaned_text = re.sub(r'[ \t]+\n', '\n', cleaned_text)  # Rimuovi spazi alla fine di una riga
+    cleaned_text = re.sub(r'\n[ \t]+', '\n', cleaned_text)  # Rimuovi spazi all'inizio di una nuova riga
+
+    # Step 5: Elimina eventuali newline all'inizio o alla fine del testo
+    cleaned_text = cleaned_text.strip()
+
+    return cleaned_text
