@@ -34,7 +34,7 @@ class SearchInputSection(QGroupBox):
         self.act_number_input.setToolTip("Inserisci il numero dell'atto legislativo.")
 
         # New radio button for annex number
-        self.annex_radio_button = QRadioButton("Inserisci Numero Allegato")
+        self.annex_radio_button = QRadioButton("Allegato")
         self.annex_radio_button.setToolTip("Seleziona per inserire il numero dell'allegato.")
         self.annex_radio_button.toggled.connect(self.toggle_annex_input)
 
