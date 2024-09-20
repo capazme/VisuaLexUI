@@ -115,21 +115,21 @@ class NormaViewer(QMainWindow):
         
         # Usa QSizePolicy con i valori corretti
         self.norma_info_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
-        self.norma_info_dock.setMinimumSize(QSize(37, 25))  # Ridurre le dimensioni minime per i dock
+        #self.norma_info_dock.setMinimumSize(QSize(37, 25))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
 
     def create_collapsible_brocardi_dock(self):
         """Crea un dock widget collassabile per le informazioni sui Brocardi."""
         self.brocardi_dock = BrocardiDockWidget(self)
         self.brocardi_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
-        self.brocardi_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
+        #self.brocardi_dock.setMinimumSize(QSize(75, 50))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.brocardi_dock)
 
     def create_collapsible_output_dock(self):
         """Crea un dock widget collassabile per l'area di output."""
         self.output_dock = OutputArea(self)
         self.output_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
-        self.output_dock.setMinimumSize(QSize(75, 37))  # Ridurre le dimensioni minime per i dock
+        #self.output_dock.setMinimumSize(QSize(75, 37))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)
 
     def show_norma_info_dock(self):
@@ -333,9 +333,10 @@ class NormaViewer(QMainWindow):
         # Aggiunge informazioni sui Brocardi al widget dock
         if normavisitata._brocardi_info:
             brocardi_info = normavisitata._brocardi_info
-            position = brocardi_info.get('position', "Posizione non disponibile")
-            link = brocardi_info.get('link', "#")
-            self.brocardi_dock.add_brocardi_info(position, link, brocardi_info.get('info', {}))
+            if brocardi_info.get('position', None):
+                position = brocardi_info.get('position', "Posizione non disponibile")
+                link = brocardi_info.get('link', "#")
+                self.brocardi_dock.add_brocardi_info(position, link, brocardi_info.get('info', {}))
 
     def clipboard(self):
         """Ritorna l'oggetto clipboard dell'applicazione."""
