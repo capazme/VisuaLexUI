@@ -45,6 +45,7 @@ class NormaViewer(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.fonti_principali = FONTI_PRINCIPALI
+        self.create_menu()
 
         # Layout principale
         main_layout = QVBoxLayout()
