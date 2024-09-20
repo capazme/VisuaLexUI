@@ -5,7 +5,7 @@ from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import Qt
 
 class UpdateNotifier:
-    GITHUB_REPO = "https://github.com/username/repo"
+    GITHUB_REPO = "https://github.com/capazme/VisuaLexUI.git"
     VERSION_FILE_URL = f"{GITHUB_REPO}/raw/main/src/visualex_ui/resources/version.txt"
     
     def __init__(self, parent, version_icon=None):
