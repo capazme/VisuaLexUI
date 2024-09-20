@@ -1,126 +1,122 @@
 # VisuaLexUI
 
-![Version](https://img.shields.io/badge/version-0.0.5-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Contributions](https://img.shields.io/badge/contributions-welcome-orange)
+![Versione](https://img.shields.io/badge/version-0.0.5-blue) ![Licenza](https://img.shields.io/badge/license-MIT-green) ![Contributi](https://img.shields.io/badge/contributions-welcome-orange)
 
-VisuaLexUI is a Python-based graphical user interface (GUI) application built with PyQt6. It allows users to search for and view legal norms, customize interface themes, and manage API interactions for retrieving legal data.
+**VisuaLexUI** è un'applicazione GUI (interfaccia grafica) basata su Python e costruita con PyQt6. Permette agli utenti di cercare e visualizzare norme legali, personalizzare i temi dell'interfaccia e gestire le interazioni API per il recupero di dati normativi.
 
-## Table of Contents
+## Indice
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Dependencies](#dependencies)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+- [Caratteristiche](#caratteristiche)
+- [Introduzione](#introduzione)
+- [Installazione](#installazione)
+- [Utilizzo](#utilizzo)
+- [Dipendenze](#dipendenze)
+- [Contribuire](#contribuire)
+- [Licenza](#licenza)
+- [Contatti](#contatti)
 
-## Features
+## Caratteristiche
 
-- **Search Legal Norms:** Search for legal norms by type, date, article number, and version (original or current).
-- **Customizable Themes:** Customize the application’s appearance using a built-in theme dialog.
-- **API Integration:** Fetch data from a remote API (VisuaLexAPI) with error handling, retries, and caching.
-- **Brocardi Information Display:** View detailed legal metadata, including information from the website brocardi.com.
+- **Ricerca Normativa:** Consente di cercare norme legali per tipo di atto, data, numero di articolo e versione (originale o vigente).
+- **Temi Personalizzabili:** Personalizza l'aspetto dell'applicazione tramite un dialogo dedicato ai temi.
+- **Integrazione API:** Recupera dati da un'API remota (VisuaLexAPI) con gestione degli errori, ripetizioni dei tentativi e caching.
+- **Visualizzazione Informazioni Brocardi:** Mostra metadati giuridici dettagliati, incluse informazioni dal sito brocardi.com.
 
-## Getting Started
+## Introduzione
 
-To get started with VisuaLexUI, follow the installation instructions below and run the application to explore its features.
+Per iniziare con **VisuaLexUI**, segui le istruzioni di installazione qui sotto e avvia l'applicazione per esplorarne le funzionalità.
 
-## Installation
+## Installazione
 
-Follow these steps to set up the application on your local machine:
+Segui questi passaggi per configurare l'applicazione sulla tua macchina locale:
 
-1. **Clone the Repository:**
+1. **Clona il Repository:**
 
-    ```bash
-    git clone https://github.com/capazme/VisuaLexUI.git
-    cd VisuaLexUI
-    ```
+   ```bash
+   git clone https://github.com/capazme/VisuaLexUI.git
+   cd VisuaLexUI
+   ```
+2. **Crea un Ambiente Virtuale:**
 
-2. **Create a Virtual Environment:**
+   Assicurati che Python 3.7+ sia installato. Puoi verificare eseguendo il seguente comando:
 
-   Ensure Python 3.7+ is installed. You can check if Python is installed by running:
+   ```bash
+   python3 --version
+   ```
 
-    ```bash
-    python3 --version
-    ```
+   Poi, crea un ambiente virtuale Python usando `venv`:
 
-   Then, create a Python virtual environment using `venv`:
+   ```bash
+   python3 -m venv .venv
+   ```
 
-    ```bash
-    python3 -m venv .venv
-    ```
+   Attiva l'ambiente virtuale:
 
-   Activate the virtual environment:
+   - **Su Linux/macOS:**
 
-   - **On Linux/macOS:**
+   ```bash
+   source .venv/bin/activate
+   ```
 
-    ```bash
-    source .venv/bin/activate
-    ```
+   - **Su Windows:**
 
-   - **On Windows:**
+   ```bash
+   .venv\Scripts\activate
+   ```
+3. **Installa le Dipendenze:**
 
-    ```bash
-    .venv\Scripts\activate
-    ```
+   Installa le dipendenze necessarie utilizzando `pip`:
 
-3. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. **Costruisci l'Applicazione:**
 
-   Install the required dependencies using `pip`:
+   Per costruire l'applicazione, esegui lo script appropriato per il tuo sistema operativo:
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+   - **Su Windows:**
 
-4. **Build the Application:**
+   ```bash
+   build.bat
+   ```
 
-   To build the application, run the appropriate script for your operating system:
+   - **Su macOS/Linux:**
 
-   - **On Windows:**
+   ```bash
+   bash build.sh
+   ```
 
-    ```bash
-    build.bat
-    ```
+   L'applicazione costruita si troverà nella directory specificata.
 
-   - **On macOS/Linux:**
+## Utilizzo
 
-    ```bash
-    bash build.sh
-    ```
+- **Interfaccia di Ricerca:** Usa i campi di input per cercare norme legali in base al tipo di atto, data, numero di atto e numero di articolo.
+- **Personalizzazione dei Temi:** Vai su "Impostazioni" > "Personalizza Tema" per regolare il tema dell'applicazione.
+- **Gestione dell'URL dell'API:** Modifica l'URL dell'API tramite "Impostazioni" > "Cambia URL API" per impostare un nuovo endpoint per VisuaLexAPI.
 
-   The built application will be located in the directory.
-
-## Usage
-
-- **Search Interface:** Use the input fields to search for legal norms by type, date, act number, and article number.
-- **Theme Customization:** Navigate to "Settings" > "Customize Theme" to adjust the application's theme.
-- **API URL Management:** Modify the API URL through "Settings" > "Change API URL" to set a new VisuaLexAPI endpoint.
-
-
-## Dependencies
+## Dipendenze
 
 - **Python 3.7+**
 - **PyQt6**
 - **Requests**
-- **Other libraries:** Listed in `requirements.txt`
+- **Altre librerie:** Elencate in `requirements.txt`
 
-## Contributing
+## Contribuire
 
-Contributions are welcome! Please follow these steps to contribute:
+I contributi sono benvenuti! Segui questi passaggi per contribuire:
 
-1. **Fork the repository.**
-2. **Create a new branch** for your feature (`git checkout -b feature/AmazingFeature`).
-3. **Commit your changes** (`git commit -m 'Add some AmazingFeature'`).
-4. **Push to the branch** (`git push origin feature/AmazingFeature`).
-5. **Open a Pull Request.**
+1. **Fai un fork del repository.**
+2. **Crea un nuovo branch** per la tua funzionalità (`git checkout -b feature/AmazingFeature`).
+3. **Fai commit delle tue modifiche** (`git commit -m 'Aggiunta di una AmazingFeature'`).
+4. **Esegui il push sul branch** (`git push origin feature/AmazingFeature`).
+5. **Apri una Pull Request.**
 
-## License
+## Licenza
 
-This project is licensed under the MIT License. You are free to use, modify, and distribute this software. See the [LICENSE](LICENSE) file for more details.
+Questo progetto è concesso sotto licenza MIT. Puoi utilizzare, modificare e distribuire liberamente questo software. Consulta il file [LICENSE](LICENSE) per maggiori dettagli.
 
-## Contact
+## Contatti
 
-For more information, feel free to reach out to the project maintainer:
+Per ulteriori informazioni, puoi contattare il manutentore del progetto:
 
 - GitHub: [capazme](https://github.com/capazme)
