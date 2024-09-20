@@ -1,7 +1,7 @@
 import requests
 import os
-from PyQt6.QtWidgets import QMessageBox, QSystemTrayIcon, QMenu, QAction
-from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QMessageBox, QSystemTrayIcon, QMenu
+from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import Qt
 
 class UpdateNotifier:
@@ -76,8 +76,12 @@ class UpdateNotifier:
         """
         Lancia il processo di aggiornamento esterno (update.py).
         """
-        update_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'update', 'update.py')
+        
+        
+        """  update_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'update', 'update.py')
         if os.path.exists(update_script):
             os.system(f'python {update_script}')
         else:
             print("Script di aggiornamento non trovato.")
+        """
+        print('\n\n\nAAAAAAAAA\n\n\n')

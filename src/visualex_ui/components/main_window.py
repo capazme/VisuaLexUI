@@ -22,9 +22,10 @@ class NormaViewer(QMainWindow):
         super().__init__()
         self.setWindowTitle(f"VisuaLex v{self.get_app_version()}")
         self.setGeometry(100, 100, 900, 700)
-        # Inizializza UpdateNotifier con un'icona di aggiornamento
-        self.update_icon = self.create_update_icon()
-        self.update_notifier = UpdateNotifier(self, self.update_icon)
+        
+        # Inizializza UpdateNotifier prima di creare l'icona
+        self.update_notifier = UpdateNotifier(self)  # Prima l'oggetto UpdateNotifier
+        self.update_icon = self.create_update_icon()  # Poi l'icona di aggiornamento
 
         # Abilitare il nesting e animazioni nei dock
         self.setDockNestingEnabled(True)
@@ -42,7 +43,7 @@ class NormaViewer(QMainWindow):
 
         # Carica le impostazioni del tema salvate
         self.load_theme_settings()
-
+        
     def setup_ui(self):
         # Impostazioni dell'applicazione
         self.settings = QSettings("NormaApp", "NormaViewer")
@@ -125,7 +126,6 @@ class NormaViewer(QMainWindow):
         self.norma_info_dock.setMinimumSize(QSize(200, 150))  # Dimensioni minime ragionevoli
         self.norma_info_dock.setVisible(False)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.norma_info_dock)
-
 
     def create_collapsible_brocardi_dock(self):
         """Crea un dock widget collassabile per le informazioni sui Brocardi."""
