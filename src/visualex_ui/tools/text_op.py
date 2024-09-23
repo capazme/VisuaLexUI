@@ -212,21 +212,23 @@ def clean_text(article_text):
     article_text = re.sub(r'\(\([\n\s]*(.*?)\n*\)\)', r'((\1))', article_text, flags=re.DOTALL)
 
     # Step 2: Mantieni newline dopo Articoli (es. "Art. 1") ma non dopo i commi (es. "1.", "1-bis.")
-    # Articolo e titoli devono essere seguiti da due newline, mentre i commi no.
     cleaned_text = re.sub(r'(\bArt\.\s*\d+)\n+', r'\1\n\n', article_text)
-    
-    # Correzione: Rimuovi newline dopo il numero dei commi
-    # Sostituisci la newline subito dopo i numeri dei commi con uno spazio
-    cleaned_text = re.sub(r'(\b\d+(-[a-z]+)?\.)\s*\n+', r'\1 ', cleaned_text)
 
-    # Step 3: Rimuovi multiple newline (più di 2) e sostituisci con singole newline
+    # Step 3: Non rimuovere newline dopo numeri di commi se seguiti da un punto (numero di fine frase)
+    # Rimuovi newline solo se segue del testo che non è un numero e non è una nuova frase (che termina con un punto)
+    cleaned_text = re.sub(r'(\b\d+(-[a-z]+)?\.)\s*\n(?!\d+\.|\S*\.)', r'\1 ', cleaned_text)
+
+    # Step 4: Mantieni le newline dopo la fine dei commi (che terminano con un punto)
+    cleaned_text = re.sub(r'(?<=\.)\n+', '\n\n', cleaned_text)
+
+    # Step 5: Rimuovi multiple newline (più di 2) e sostituisci con singole newline
     cleaned_text = re.sub(r'\n{3,}', '\n\n', cleaned_text)
 
-    # Step 4: Rimuovi spazi vuoti che precedono o seguono una newline
+    # Step 6: Rimuovi spazi vuoti che precedono o seguono una newline
     cleaned_text = re.sub(r'[ \t]+\n', '\n', cleaned_text)  # Rimuovi spazi alla fine di una riga
     cleaned_text = re.sub(r'\n[ \t]+', '\n', cleaned_text)  # Rimuovi spazi all'inizio di una nuova riga
 
-    # Step 5: Elimina eventuali newline all'inizio o alla fine del testo
+    # Step 7: Elimina eventuali newline all'inizio o alla fine del testo
     cleaned_text = cleaned_text.strip()
 
     return cleaned_text
