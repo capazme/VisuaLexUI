@@ -1,87 +1,170 @@
+# updater.py
+
 import requests
+import threading
+import sys
 import os
-from PyQt6.QtWidgets import QMessageBox, QSystemTrayIcon, QMenu
-from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtCore import Qt
+import shutil
+import tempfile
+import zipfile
+import platform
+import subprocess
+from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtCore import QObject, pyqtSignal
+import logging
 
-class UpdateNotifier:
-    GITHUB_REPO = "https://github.com/capazme/VisuaLexUI.git"
-    VERSION_FILE_URL = f"{GITHUB_REPO}/raw/main/src/visualex_ui/resources/version.txt"
-    
-    def __init__(self, parent, version_icon=None):
-        self.parent = parent  # Riferimento alla finestra principale
-        self.version_icon = version_icon  # Riferimento all'icona grafica per notificare l'aggiornamento
+class UpdateNotifier(QObject):
+    update_available = pyqtSignal(str)
 
-    def check_for_update(self, local_version):
-        """
-        Controlla la versione remota e notifica l'utente se c'è un aggiornamento disponibile.
-        """
-        remote_version = self.get_remote_version()
-        if remote_version and self.is_newer_version(local_version, remote_version):
-            self.notify_user(remote_version)
-            if self.version_icon:
-                self.version_icon.setToolTip(f"Aggiornamento disponibile: {remote_version}")
-                self.version_icon.setVisible(True)
-        else:
-            if self.version_icon:
-                self.version_icon.setVisible(False)
+    def __init__(self, parent=None):
+        super().__init__()
+        self.parent = parent
+        self.latest_version = None
 
-    def get_remote_version(self):
-        """
-        Recupera la versione remota dal file version.txt su GitHub.
-        """
+    def check_for_update(self, current_version):
+        """Controlla se è disponibile un aggiornamento confrontando versioni locali e remote."""
+        def _check():
+            try:
+                # URL del tuo file version.txt su GitHub (modifica con il tuo repository)
+                version_url = "https://raw.githubusercontent.com/tuo_username/tuo_repository/main/src/visualex_ui/resources/version.txt"
+
+                response = requests.get(version_url, timeout=5)
+                if response.status_code == 200:
+                    self.latest_version = response.text.strip()
+                    if self.is_newer_version(current_version, self.latest_version):
+                        self.update_available.emit(self.latest_version)
+                else:
+                    logging.error("Impossibile ottenere la versione dal server.")
+            except Exception as e:
+                logging.error(f"Errore durante il controllo degli aggiornamenti: {e}")
+
+        threading.Thread(target=_check).start()
+
+    def is_newer_version(self, current_version, latest_version):
+        """Confronta le versioni."""
+        def parse_version(v):
+            return [int(x) for x in v.split('.')]
         try:
-            response = requests.get(self.VERSION_FILE_URL)
+            return parse_version(latest_version) > parse_version(current_version)
+        except ValueError:
+            return False  # Se le versioni non possono essere analizzate, assume che non ci siano aggiornamenti
+
+    def prompt_update(self):
+        """Chiede all'utente se desidera aggiornare."""
+        reply = QMessageBox.question(
+            self.parent,
+            "Aggiornamento Disponibile",
+            f"È disponibile una nuova versione ({self.latest_version}). Vuoi aggiornare?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self.download_and_update()
+
+    def download_and_update(self):
+        """Scarica la repository ed esegue lo script di build."""
+        try:
+            # URL per scaricare l'archivio ZIP della repository
+            repo_zip_url = "https://github.com/tuo_username/tuo_repository/archive/refs/heads/main.zip"
+
+            response = requests.get(repo_zip_url, stream=True)
             if response.status_code == 200:
-                return response.text.strip()
+                # Salva il file ZIP in una directory temporanea
+                temp_dir = tempfile.mkdtemp()
+                zip_path = os.path.join(temp_dir, 'repo.zip')
+                with open(zip_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+
+                # Estrai il file ZIP
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    zip_ref.extractall(temp_dir)
+
+                # Percorso della repository estratta
+                extracted_repo_path = os.path.join(temp_dir, 'tuo_repository-main')  # Modifica se necessario
+
+                # Rileva il sistema operativo
+                current_os = platform.system()
+                if current_os == 'Darwin':  # macOS
+                    build_script = 'build_macos.sh'
+                    shell = True
+                elif current_os == 'Windows':
+                    QMessageBox.warning(self.parent, "Sistema Operativo Non Supportato", "Il tuo sistema operativo non è supportato per gli aggiornamenti automatici.")
+                    return
+                else:
+                    QMessageBox.warning(self.parent, "Sistema Operativo Non Supportato", "Il tuo sistema operativo non è supportato per gli aggiornamenti automatici.")
+                    return
+
+                # Percorso dello script di build
+                build_script_path = os.path.join(extracted_repo_path, build_script)
+
+                # Assicurati che lo script di build sia eseguibile
+                os.chmod(build_script_path, 0o755)
+
+                # Informa l'utente che l'aggiornamento sta per iniziare
+                QMessageBox.information(self.parent, "Aggiornamento in Corso", "L'applicazione si aggiornerà ora. Attendi il completamento dell'operazione...")
+
+                # Esegui lo script di build
+                process = subprocess.Popen(['bash', build_script_path], cwd=extracted_repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                # Attendi il completamento della build
+                stdout, stderr = process.communicate()
+
+                if process.returncode != 0:
+                    logging.error(f"Lo script di build ha fallito con errore: {stderr.decode()}")
+                    QMessageBox.warning(self.parent, "Aggiornamento Fallito", "Il processo di aggiornamento è fallito. Per favore, riprova.")
+                    return
+
+                # Percorso della nuova applicazione costruita
+                version = self.latest_version
+                output_name = f"VisualexApp-v{version}.app"
+                new_app_path = os.path.join(extracted_repo_path, output_name)
+
+                # Verifica che la nuova app esista
+                if not os.path.exists(new_app_path):
+                    QMessageBox.warning(self.parent, "Aggiornamento Fallito", "La nuova applicazione non è stata costruita correttamente.")
+                    return
+
+                # Percorso dell'applicazione corrente
+                current_app_path = os.path.abspath(sys.argv[0])
+                current_app_dir = os.path.dirname(current_app_path)
+                current_app_bundle = os.path.abspath(os.path.join(current_app_dir, '..', '..', '..'))
+
+                # Sostituisci l'applicazione vecchia con la nuova
+                try:
+                    # Rinomina l'applicazione corrente per effettuare un backup
+                    backup_app_bundle = current_app_bundle + "_backup"
+                    if os.path.exists(backup_app_bundle):
+                        shutil.rmtree(backup_app_bundle)
+                    os.rename(current_app_bundle, backup_app_bundle)
+
+                    # Sposta la nuova app nella posizione dell'app corrente
+                    shutil.move(new_app_path, current_app_bundle)
+
+                    # Rimuovi il backup
+                    shutil.rmtree(backup_app_bundle)
+                except Exception as e:
+                    logging.error(f"Errore durante la sostituzione dell'applicazione: {e}")
+                    QMessageBox.warning(self.parent, "Aggiornamento Fallito", "Non è stato possibile sostituire l'applicazione esistente.")
+                    # Ripristina l'applicazione originale
+                    if os.path.exists(backup_app_bundle):
+                        os.rename(backup_app_bundle, current_app_bundle)
+                    return
+
+                # Informa l'utente e riavvia l'applicazione
+                QMessageBox.information(self.parent, "Aggiornamento Completato", "L'applicazione è stata aggiornata e verrà riavviata.")
+                self.restart_application(current_app_bundle)
+
             else:
-                print(f"Errore nel recuperare la versione remota: {response.status_code}")
-                return None
+                QMessageBox.warning(self.parent, "Errore di Download", "Impossibile scaricare l'aggiornamento.")
         except Exception as e:
-            print(f"Errore durante la richiesta HTTP: {e}")
-            return None
+            logging.error(f"Errore durante l'aggiornamento: {e}")
+            QMessageBox.warning(self.parent, "Errore", "Si è verificato un errore durante l'aggiornamento.")
 
-    def is_newer_version(self, local_version, remote_version):
-        """
-        Confronta due versioni nel formato major.minor.patch.
-        Ritorna True se la versione remota è più recente.
-        """
-        local_parts = list(map(int, local_version.split('.')))
-        remote_parts = list(map(int, remote_version.split('.')))
-
-        for local_part, remote_part in zip(local_parts, remote_parts):
-            if remote_part > local_part:
-                return True
-            elif local_part > remote_part:
-                return False
-
-        return len(remote_parts) > len(local_parts)
-
-    def notify_user(self, remote_version):
-        """
-        Notifica l'utente della disponibilità di un aggiornamento.
-        """
-        msg = QMessageBox(self.parent)
-        msg.setIcon(QMessageBox.Icon.Information)
-        msg.setText(f"È disponibile una nuova versione ({remote_version}).")
-        msg.setInformativeText("Si desidera aggiornare ora?")
-        msg.setWindowTitle("Aggiornamento Disponibile")
-        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        result = msg.exec()
-
-        if result == QMessageBox.StandardButton.Yes:
-            self.launch_external_updater()
-
-    def launch_external_updater(self):
-        """
-        Lancia il processo di aggiornamento esterno (update.py).
-        """
-        
-        
-        """  update_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'update', 'update.py')
-        if os.path.exists(update_script):
-            os.system(f'python {update_script}')
-        else:
-            print("Script di aggiornamento non trovato.")
-        """
-        print('\n\n\nAAAAAAAAA\n\n\n')
+    def restart_application(self, app_bundle_path):
+        """Riavvia l'applicazione aggiornata."""
+        try:
+            subprocess.Popen(['open', app_bundle_path])
+            sys.exit()
+        except Exception as e:
+            logging.error(f"Errore durante il riavvio dell'applicazione: {e}")
+            QMessageBox.warning(self.parent, "Errore", "Si è verificato un errore durante il riavvio dell'applicazione.")

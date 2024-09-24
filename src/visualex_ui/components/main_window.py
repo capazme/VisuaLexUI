@@ -50,6 +50,10 @@ class NormaViewer(QMainWindow):
         self.api_url = self.settings.value("api_url", "https://0.0.0.0:8000")  # URL di default
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
+        # Inizializza UpdateNotifier
+        self.update_notifier = UpdateNotifier(self)
+        self.update_notifier.update_available.connect(self.update_notifier.prompt_update)
+
         self.fonti_principali = FONTI_PRINCIPALI
         self.create_menu()
 
@@ -76,6 +80,8 @@ class NormaViewer(QMainWindow):
         # Impostazioni di default per il widget centrale
         self.centralWidget().setMinimumSize(350, 420)  # Dimensioni minime ragionevoli
         self.setup_shortcuts()
+        self.update_notifier.check_for_update(self.get_app_version())
+
 
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""

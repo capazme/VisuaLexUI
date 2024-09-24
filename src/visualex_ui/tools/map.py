@@ -13,7 +13,7 @@ NORMATTIVA_URN_CODICI = {
     "codice postale e delle telecomunicazioni": "decreto.del.presidente.della.repubblica:1973-03-29;156:1",
     "codice di procedura penale": "decreto.del.presidente.della.repubblica:1988-09-22;447",
     "norme di attuazione, di coordinamento e transitorie del codice di procedura penale": "decreto.legislativo:1989-07-28;271",
-    "regolamento per l'esecuzione del codice di procedura penale": "/uri-res/N2Ls?urn:nir:ministero.grazia.e.giustizia:decreto:1989-09-30;334",
+    "regolamento per l'esecuzione del codice di procedura penale": "ministero.grazia.e.giustizia:decreto:1989-09-30;334",
     "codice della strada": "decreto.legislativo:1992-04-30;285",
     "regolamento di esecuzione e di attuazione del nuovo codice della strada.": "decreto.del.presidente.della.repubblica:1992-12-16;495",
     "codice del processo tributario": "decreto.legislativo:1992-12-31;546",
@@ -36,7 +36,7 @@ NORMATTIVA_URN_CODICI = {
     "codice del turismo": "decreto.legislativo:2011-05-23;79",
     "codice antimafia": "decreto.legislativo:2011-09-06;159",
     "codice di giustizia contabile": "decreto.legislativo:2016-08-26;174:1",
-    "codice del Terzo settore": "decreto.legislativo:2017-07-03;117",
+    "codice del terzo settore": "decreto.legislativo:2017-07-03;117",
     "codice della protezione civile": "decreto.legislativo:2018-01-02;1",
     "codice della crisi d'impresa e dell'insolvenza": "decreto.legislativo:2019-01-12;14"
 }
