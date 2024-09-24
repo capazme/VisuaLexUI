@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, QPushButton, QDockWidget, QSizePolicy
-from PyQt6.QtCore import QSettings, Qt, QSize, QEvent
+from PyQt6.QtCore import QSettings, Qt, QSize, QEvent, QMetaObject, pyqtSlot
 from PyQt6.QtGui import QIcon, QAction, QKeySequence, QShortcut
 from .search_input import SearchInputSection
 from .norma_info import NormaInfoSection
@@ -14,7 +14,7 @@ from ..tools.text_op import clean_text
 from ..utils.updater import UpdateNotifier
 import logging
 import subprocess
-import re
+import threading
 import sys
 
 class NormaViewer(QMainWindow):
@@ -50,9 +50,13 @@ class NormaViewer(QMainWindow):
         self.api_url = self.settings.value("api_url", "https://0.0.0.0:8000")  # URL di default
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        # Inizializza UpdateNotifier
+        
+        ## Inizializza UpdateNotifier
         self.update_notifier = UpdateNotifier(self)
         self.update_notifier.update_available.connect(self.update_notifier.prompt_update)
+
+        # Crea l'icona di aggiornamento
+        self.update_icon = self.create_update_icon()
 
         self.fonti_principali = FONTI_PRINCIPALI
         self.create_menu()
@@ -82,7 +86,65 @@ class NormaViewer(QMainWindow):
         self.setup_shortcuts()
         self.update_notifier.check_for_update(self.get_app_version())
 
+    def create_update_icon(self):
+        """
+        Crea un'icona di notifica per l'aggiornamento e la aggiunge alla barra di stato.
+        """
+        logging.debug("Creazione dell'icona di aggiornamento.")
+        
+        try:
+            update_action = QAction(QIcon(get_resource_path('resources/icon_update.png')), "Aggiornamento Disponibile", self)
+            logging.debug("Icona di aggiornamento creata.")
+            
+            update_action.setToolTip("Clicca per verificare l'aggiornamento")
+            update_action.triggered.connect(self.manual_update_check)  # Assicurati che questa linea sia corretta
+            logging.debug("Azione connessa al controllo degli aggiornamenti manuale.")
+            
+            # Aggiungi l'icona alla barra di stato
+            self.statusBar().addAction(update_action)
+            update_action.setVisible(True)  # Mostra l'icona
+            logging.info("Icona di aggiornamento aggiunta alla barra di stato e visibile.")
+            
+            return update_action
+        except Exception as e:
+            logging.error(f"Errore durante la creazione dell'icona di aggiornamento: {e}")
+    
+    @pyqtSlot()
+    def show_no_update_message(self):
+        """Mostra un messaggio quando non ci sono aggiornamenti disponibili."""
+        QMessageBox.information(self, "Nessun Aggiornamento", "La tua applicazione è già aggiornata.")
 
+    def manual_update_check(self):
+        """Metodo per avviare manualmente il controllo degli aggiornamenti."""
+        logging.debug("Avvio del controllo manuale degli aggiornamenti.")
+        
+        current_version = self.get_app_version()
+        logging.debug(f"Versione corrente dell'applicazione: {current_version}")
+        
+        # Funzione chiamata quando viene verificata la versione remota
+        def on_update_checked():
+            latest_version = self.update_notifier.latest_version
+            logging.debug(f"Versione remota ottenuta: {latest_version}")
+            
+            if not self.update_notifier.is_newer_version(current_version, latest_version):
+                logging.info("L'applicazione è già aggiornata.")
+                # Invoca il metodo show_no_update_message nel thread principale
+                QMetaObject.invokeMethod(self, "show_no_update_message", Qt.ConnectionType.QueuedConnection)
+            else:
+                logging.info(f"Trovata nuova versione: {latest_version}. Avvio del processo di aggiornamento.")
+                # Invoca il metodo prompt_update nel thread principale
+                QMetaObject.invokeMethod(self.update_notifier, "prompt_update", Qt.ConnectionType.QueuedConnection)
+                    
+        # Avvia il controllo degli aggiornamenti
+        def check_update_complete():
+            on_update_checked()  # Chiama la funzione dopo aver recuperato la versione remota.
+
+        logging.debug("Avvio del controllo della versione remota.")
+        self.update_notifier.check_for_update(current_version)
+        
+        # Aggiunge un piccolo ritardo per permettere al thread di completare
+        threading.Timer(1.5, check_update_complete).start()
+        
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
         self.adjust_window_size()
@@ -185,6 +247,11 @@ class NormaViewer(QMainWindow):
         theme_customize_action = QAction("Personalizza Tema", self)
         theme_customize_action.triggered.connect(self.open_theme_dialog)
         settings_menu.addAction(theme_customize_action)
+
+        # Aggiungi azione per il controllo manuale degli aggiornamenti
+        check_update_action = QAction("Controlla Aggiornamenti", self)
+        check_update_action.triggered.connect(self.manual_update_check)
+        settings_menu.addAction(check_update_action)
 
     def toggle_norma_info(self):
         """Mostra o nasconde la sezione delle informazioni sulla norma."""
@@ -391,21 +458,3 @@ class NormaViewer(QMainWindow):
         subprocess.Popen([python] + sys.argv)
         # Chiudi l'applicazione corrente
         QApplication.quit()
-
-    def create_update_icon(self):
-        """
-        Crea un'icona di notifica per l'aggiornamento e la aggiunge alla barra di stato.
-        """
-        update_action = QAction(QIcon(get_resource_path('resources/icon_update.png')), "Aggiornamento Disponibile", self)
-        update_action.setToolTip("Clicca per verificare l'aggiornamento")
-        update_action.triggered.connect(self.update_notifier.launch_external_updater)
-
-        # Aggiungi l'icona alla barra di stato
-        self.statusBar().addAction(update_action)
-        update_action.setVisible(False)  # Inizialmente nascosto
-        return update_action
-
-    def check_for_updates(self):
-        """Controlla se ci sono aggiornamenti disponibili e avvisa l'utente."""
-        local_version = self.get_app_version()
-        self.update_notifier.check_for_update(local_version)
