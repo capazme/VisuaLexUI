@@ -50,6 +50,7 @@ install_requirements() {
         exit 1
     fi
     echo "Installazione dei requisiti da requirements.txt..."
+    pip install --upgrade pip
     pip install -r "$SCRIPT_DIR/requirements.txt"
     if [ $? -ne 0 ]; then
         echo "Errore: Installazione dei requisiti fallita."
