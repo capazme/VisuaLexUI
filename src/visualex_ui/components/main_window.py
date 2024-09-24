@@ -90,7 +90,7 @@ class NormaViewer(QMainWindow):
         self.centralWidget().setMinimumSize(350, 420)  # Dimensioni minime ragionevoli
         self.setup_shortcuts()
         # Verifica la presenza di aggiornamenti all'avvio
-        self.manual_update_check()
+        #self.manual_update_check()
 
     def create_update_icon(self):
         """Crea un'icona di notifica per l'aggiornamento e la aggiunge alla barra di stato."""
@@ -138,27 +138,11 @@ class NormaViewer(QMainWindow):
     def manual_update_check(self):
         """Metodo per avviare manualmente il controllo degli aggiornamenti."""
         logging.debug("Avvio del controllo manuale degli aggiornamenti.")
-        
+
         current_version = self.get_app_version()
         logging.debug(f"Versione corrente dell'applicazione: {current_version}")
 
-        # Assicurati che non ci siano altri thread in esecuzione
-        if self.update_thread is not None and self.update_thread.isRunning():
-            logging.warning("Controllo aggiornamenti già in esecuzione.")
-            return
-
-        # Crea un nuovo thread per eseguire il controllo degli aggiornamenti
-        self.update_thread = QThread()
-        self.update_worker = UpdateCheckWorker(current_version)
-        self.update_worker.moveToThread(self.update_thread)
-
-        # Collegare i segnali del worker
-        self.update_worker.update_checked.connect(self.on_update_checked)
-
-        # Connessione per fermare il thread una volta finito
-        self.update_thread.finished.connect(self.update_thread.deleteLater)
-        self.update_thread.started.connect(self.update_worker.check_for_update)
-        self.update_thread.start()
+        self.update_notifier.check_for_update(current_version)
 
     @pyqtSlot()
     def show_no_update_message(self):

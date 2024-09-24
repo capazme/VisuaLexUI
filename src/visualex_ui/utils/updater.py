@@ -14,6 +14,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot, QThread
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QTextEdit, QMessageBox
 )
+from PyQt6.QtCore import QMetaObject, Qt
 from .helpers import get_resource_path
 
 class ProgressDialog(QDialog):
@@ -266,18 +267,28 @@ class UpdateNotifier(QObject):
 
     def check_for_update(self, current_version):
         """Avvia un thread per controllare gli aggiornamenti."""
+        if self.update_thread is not None and self.update_thread.isRunning():
+            logging.warning("Controllo aggiornamenti già in esecuzione.")
+            return
+
         self.update_worker = UpdateCheckWorker(current_version)
-        self.update_worker.update_checked.connect(self.on_update_checked)
+        self.update_worker.update_checked.connect(self.on_update_checked, Qt.ConnectionType.QueuedConnection)
 
         self.update_thread = QThread()
         self.update_worker.moveToThread(self.update_thread)
 
+        self.update_thread.finished.connect(self.update_thread.deleteLater)
         self.update_thread.started.connect(self.update_worker.check_for_update)
         self.update_thread.start()
+
+
+
+
 
     @pyqtSlot(bool, str)
     def on_update_checked(self, is_newer, latest_version):
         self.latest_version = latest_version
+        logging.debug(f"on_update_checked: self.latest_version impostato a {self.latest_version}")
         self.update_thread.quit()
         self.update_thread.wait()
 
@@ -286,13 +297,13 @@ class UpdateNotifier(QObject):
             self.prompt_update()
         else:
             logging.info("L'applicazione è già aggiornata.")
-            # Chiamata al metodo per informare l'utente
-            self.parent.show_no_update_message()
+            QMetaObject.invokeMethod(self.parent, "show_no_update_message", Qt.ConnectionType.QueuedConnection)
+
 
     @pyqtSlot()
     def prompt_update(self):
-        """Chiede all'utente se desidera aggiornare."""
-        logging.debug("Richiesta di conferma per aggiornamento.")
+        logging.debug(f"prompt_update: self.latest_version è {self.latest_version}")
+
         reply = QMessageBox.question(
             self.parent,
             "Aggiornamento Disponibile",
