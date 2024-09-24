@@ -26,7 +26,7 @@ class UpdateNotifier(QObject):
         def _check():
             try:
                 # URL del tuo file version.txt su GitHub (modifica con il tuo repository)
-                version_url = "https://raw.githubusercontent.com/tuo_username/tuo_repository/main/src/visualex_ui/resources/version.txt"
+                version_url = "https://github.com/capazme/VisuaLexUI/blob/f23de9b93b5972fa9384f9cf60db06734b56a2f3/src/visualex_ui/resources/version.txt"
 
                 response = requests.get(version_url, timeout=5)
                 if response.status_code == 200:
@@ -64,7 +64,7 @@ class UpdateNotifier(QObject):
         """Scarica la repository ed esegue lo script di build."""
         try:
             # URL per scaricare l'archivio ZIP della repository
-            repo_zip_url = "https://github.com/tuo_username/tuo_repository/archive/refs/heads/main.zip"
+            repo_zip_url = "https://github.com/capazme/VisuaLexUI/archive/refs/heads/main.zip"
 
             response = requests.get(repo_zip_url, stream=True)
             if response.status_code == 200:
@@ -80,7 +80,7 @@ class UpdateNotifier(QObject):
                     zip_ref.extractall(temp_dir)
 
                 # Percorso della repository estratta
-                extracted_repo_path = os.path.join(temp_dir, 'tuo_repository-main')  # Modifica se necessario
+                extracted_repo_path = os.path.join(temp_dir, 'VisuaLexUI-main')  # Modifica se necessario
 
                 # Rileva il sistema operativo
                 current_os = platform.system()
