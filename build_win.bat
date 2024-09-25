@@ -21,7 +21,7 @@ REM Funzione per controllare se Python è installato
     ) else (
         echo Python è già installato.
     )
-    exit /b 0
+    goto :eof
 
 REM Funzione per creare un ambiente virtuale se non esiste
 :SETUP_VIRTUALENV
@@ -36,16 +36,16 @@ REM Funzione per creare un ambiente virtuale se non esiste
     ) else (
         echo Ambiente virtuale già presente.
     )
-    exit /b 0
+    goto :eof
 
 REM Funzione per attivare l'ambiente virtuale
 :ACTIVATE_VIRTUALENV
-    call "%SCRIPT_DIR%.venv\Scripts\activate"
+    call "%SCRIPT_DIR%.venv\Scripts\activate.bat"
     if errorlevel 1 (
         echo Errore: Attivazione dell'ambiente virtuale fallita.
         exit /b 1
     )
-    exit /b 0
+    goto :eof
 
 REM Funzione per installare i requisiti
 :INSTALL_REQUIREMENTS
@@ -59,7 +59,7 @@ REM Funzione per installare i requisiti
         echo Errore: Installazione dei requisiti fallita.
         exit /b 1
     )
-    exit /b 0
+    goto :eof
 
 REM Funzione per aggiornare la versione
 :UPDATE_VERSION
@@ -94,7 +94,7 @@ REM Funzione per aggiornare la versione
     echo %new_version% > "%version_file%"
 
     echo Versione aggiornata a %new_version%
-    exit /b 0
+    goto :eof
 
 REM Funzione per pulire la build precedente
 :CLEAN_PREVIOUS_BUILD
@@ -103,7 +103,7 @@ REM Funzione per pulire la build precedente
     rmdir /s /q dist
     del /q *.spec
     echo Pulizia completata.
-    exit /b 0
+    goto :eof
 
 REM Funzione per costruire l'applicazione
 :BUILD_APP
@@ -136,7 +136,7 @@ REM Funzione per costruire l'applicazione
     ) else (
         echo Errore: Non è stato possibile trovare il file dist\%output_name%\%output_name%.exe. La build potrebbe essere fallita.
     )
-    exit /b 0
+    goto :eof
 
 REM Controlla se è stato passato un argomento per aggiornare la versione
 if "%1"=="-maj" (
