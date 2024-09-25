@@ -152,15 +152,19 @@ class NormaViewer(QMainWindow):
     def get_app_version(self):
         """Ottiene la versione dell'applicazione dal file delle risorse."""
         try:
-            version_file_path = get_resource_path('resources/version.txt')
+            version_file_path = get_resource_path('version.txt')
+            logging.debug(f"Percorso del file version.txt: {version_file_path}")
             with open(version_file_path, 'r') as f:
-                return f.read().strip()
+                version = f.read().strip()
+                logging.debug(f"Versione letta dal file: {version}")
+                return version
         except FileNotFoundError:
             logging.error("File version.txt non trovato.")
             return "0.0.1"  # Versione predefinita
         except Exception as e:
             logging.error(f"Errore nel caricamento della versione dell'app: {e}")
             return "0.0.1"
+
 
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""

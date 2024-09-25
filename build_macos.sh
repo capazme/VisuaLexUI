@@ -103,18 +103,20 @@ clean_previous_build() {
     echo "Pulizia completata."
 }
 
-# Funzione per costruire l'applicazione
 build_app() {
     local version=$(cat "$SCRIPT_DIR/src/visualex_ui/resources/version.txt")
+    local style=$(cat "$SCRIPT_DIR/src/visualex_ui/resources/custom_style.qss")
     local output_name="VisualexApp-v$version"
-    local icon_path="$SCRIPT_DIR/src/visualex_ui/resources/icon.icns"  # Percorso dinamico dell'icona
+    local icon_path="$SCRIPT_DIR/src/visualex_ui/resources/icon.icns"  # Percorso dell'icona
 
     # Pulizia della build precedente
     clean_previous_build
 
     # Esegui il comando PyInstaller
     pyinstaller --onedir --windowed \
-        --add-data "$SCRIPT_DIR/src/visualex_ui/resources:visualex_ui/resources" \
+        --add-data "$SCRIPT_DIR/src/visualex_ui/resources/icon.icns:resources" \
+        --add-data "$SCRIPT_DIR/src/visualex_ui/resources/custom_style.qss:resources" \
+        --add-data "$SCRIPT_DIR/src/visualex_ui/resources/version.txt:resources" \
         --name "$output_name" --icon "$icon_path" \
         --noconfirm "$SCRIPT_DIR/src/main.py"
 

@@ -38,7 +38,7 @@ class ThemeManager:
         """
         try:
             # Load base stylesheet from custom_style.qss
-            stylesheet_template_path = get_resource_path('resources/custom_style.qss')
+            stylesheet_template_path = get_resource_path('custom_style.qss')
             with open(stylesheet_template_path, 'r', encoding='utf-8') as file:
                 base_stylesheet = file.read()
 

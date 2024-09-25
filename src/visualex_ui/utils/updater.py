@@ -72,6 +72,7 @@ class ProgressDialog(QDialog):
 
 class UpdateCheckWorker(QObject):
     update_checked = pyqtSignal(bool, str)  # is_newer, latest_version
+    finished = pyqtSignal()  # Segnale per indicare che il lavoro è terminato
 
     def __init__(self, current_version):
         super().__init__()
@@ -97,6 +98,8 @@ class UpdateCheckWorker(QObject):
         except Exception as e:
             logging.error(f"Errore durante il controllo degli aggiornamenti: {e}")
             self.update_checked.emit(False, self.current_version)
+        finally:
+            self.finished.emit()  # Emesso in ogni caso per terminare il thread
 
     def is_newer_version(self, current_version, latest_version):
         """Confronta le versioni."""
@@ -264,41 +267,55 @@ class UpdateNotifier(QObject):
         self.latest_version = None
         self.update_thread = None  # Thread per il controllo degli aggiornamenti
         self.download_thread = None  # Thread per il download e l'aggiornamento
+        self.update_worker = None  # Worker per il controllo degli aggiornamenti
 
     def check_for_update(self, current_version):
         """Avvia un thread per controllare gli aggiornamenti."""
-        if self.update_thread is not None and self.update_thread.isRunning():
+        if self.update_thread is not None:
             logging.warning("Controllo aggiornamenti già in esecuzione.")
             return
 
+        # Inizializza il worker per il controllo degli aggiornamenti
         self.update_worker = UpdateCheckWorker(current_version)
         self.update_worker.update_checked.connect(self.on_update_checked, Qt.ConnectionType.QueuedConnection)
+        self.update_worker.finished.connect(self.on_update_thread_finished)  # Connetti il segnale finished
 
+        # Crea un nuovo thread
         self.update_thread = QThread()
         self.update_worker.moveToThread(self.update_thread)
 
-        self.update_thread.finished.connect(self.update_thread.deleteLater)
+        # Avvia il controllo degli aggiornamenti
         self.update_thread.started.connect(self.update_worker.check_for_update)
         self.update_thread.start()
 
-
-
-
+    def on_update_thread_finished(self):
+        """Chiamato quando il worker ha finito il controllo degli aggiornamenti."""
+        logging.debug("Il worker di controllo aggiornamenti ha terminato.")
+        # Termina il thread e pulisci le risorse
+        if self.update_thread is not None:
+            self.update_thread.quit()
+            self.update_thread.wait()
+            self.update_thread.deleteLater()
+            self.update_thread = None
+        if self.update_worker is not None:
+            self.update_worker.deleteLater()
+            self.update_worker = None
 
     @pyqtSlot(bool, str)
     def on_update_checked(self, is_newer, latest_version):
         self.latest_version = latest_version
         logging.debug(f"on_update_checked: self.latest_version impostato a {self.latest_version}")
-        self.update_thread.quit()
-        self.update_thread.wait()
 
         if is_newer:
             logging.info(f"Trovata nuova versione: {latest_version}. Avvio del processo di aggiornamento.")
             self.prompt_update()
         else:
             logging.info("L'applicazione è già aggiornata.")
-            QMetaObject.invokeMethod(self.parent, "show_no_update_message", Qt.ConnectionType.QueuedConnection)
-
+            QMetaObject.invokeMethod(
+                self.parent,
+                "show_no_update_message",
+                Qt.ConnectionType.QueuedConnection
+            )
 
     @pyqtSlot()
     def prompt_update(self):
@@ -315,8 +332,15 @@ class UpdateNotifier(QObject):
             self.download_and_update()
         else:
             logging.info("L'utente ha rifiutato l'aggiornamento.")
+            # Non chiamare self.on_update_thread_finished() qui
+            # Il thread verrà terminato automaticamente attraverso il segnale 'finished'
 
     def download_and_update(self):
+        # Similar lifecycle management for the download thread
+        if self.download_thread is not None:
+            logging.warning("Download is already in progress.")
+            return
+
         self.progress_dialog = ProgressDialog(self.parent)
         self.progress_dialog.show()
 
@@ -330,24 +354,29 @@ class UpdateNotifier(QObject):
         self.download_thread = QThread()
         self.download_worker.moveToThread(self.download_thread)
 
+        self.download_thread.finished.connect(self.on_download_thread_finished)
         self.download_thread.started.connect(self.download_worker.download_and_update)
         self.download_thread.start()
 
+    def on_download_thread_finished(self):
+        """Called when the download thread finishes."""
+        self.download_worker.deleteLater()
+        self.download_worker = None
+        self.download_thread = None  # Reset the thread reference
+
     @pyqtSlot(bool, str)
     def on_update_completed(self, success, message):
-        self.download_thread.quit()
-        self.download_thread.wait()
         self.progress_dialog.close()
         if success:
             QMessageBox.information(
                 self.parent,
-                "Aggiornamento Completato",
-                f"L'applicazione è stata aggiornata ed è disponibile in:\n{message}\n\n"
-                "Per favore, sostituisci manualmente la tua applicazione esistente con la nuova versione."
+                "Update Completed",
+                f"The application has been updated and is available at:\n{message}\n\n"
+                "Please manually replace your existing application with the new version."
             )
-            logging.info("Aggiornamento completato con successo.")
-            # Apri la cartella contenente la nuova applicazione
+            logging.info("Update completed successfully.")
+            # Open the folder containing the new application
             subprocess.Popen(['open', os.path.dirname(message)])
         else:
-            QMessageBox.warning(self.parent, "Aggiornamento Fallito", message)
-            logging.error(f"Aggiornamento fallito: {message}")
+            QMessageBox.warning(self.parent, "Update Failed", message)
+            logging.error(f"Update failed: {message}")

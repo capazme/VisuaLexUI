@@ -4,6 +4,8 @@ import os
 import sys
 from PyQt6.QtWidgets import QListWidget, QListWidgetItem
 from PyQt6.QtCore import Qt
+import logging
+import sys
 
 def get_resource_path(relative_path):
     """
@@ -16,11 +18,15 @@ def get_resource_path(relative_path):
         str: Il percorso assoluto della risorsa.
     """
     if hasattr(sys, '_MEIPASS'):
-        # Quando l'app viene eseguita come eseguibile PyInstaller
-        return os.path.join(sys._MEIPASS,'visualex_ui', relative_path)
+        # Quando l'app è eseguita come bundle PyInstaller
+        base_path = sys._MEIPASS
     else:
-        # Quando l'app viene eseguita in ambiente di sviluppo (normale script Python)
-        return os.path.join(os.path.dirname(__file__),'..', relative_path)
+        # Quando l'app è eseguita in ambiente di sviluppo
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+    return os.path.join(base_path, 'resources', relative_path)
+
+
+
 
 def add_divider_to_list(list_widget):
     """
