@@ -90,7 +90,7 @@ class NormaViewer(QMainWindow):
         self.centralWidget().setMinimumSize(350, 420)  # Dimensioni minime ragionevoli
         self.setup_shortcuts()
         # Verifica la presenza di aggiornamenti all'avvio
-        #self.manual_update_check()
+        self.manual_update_check()
 
     def create_update_icon(self):
         """Crea un'icona di notifica per l'aggiornamento e la aggiunge alla barra di stato."""
@@ -109,6 +109,15 @@ class NormaViewer(QMainWindow):
         except Exception as e:
             logging.error(f"Errore durante la creazione dell'icona di aggiornamento: {e}")
 
+    def manual_update_check(self):
+        """Metodo per avviare manualmente il controllo degli aggiornamenti."""
+        logging.debug("Avvio del controllo manuale degli aggiornamenti.")
+
+        current_version = self.get_app_version()
+        logging.debug(f"Versione corrente dell'applicazione: {current_version}")
+
+        self.update_notifier.check_for_update(current_version)
+
     @pyqtSlot(bool, str)
     def on_update_checked(self, is_newer, latest_version):
         """Slot chiamato quando il controllo degli aggiornamenti è completo."""
@@ -118,7 +127,7 @@ class NormaViewer(QMainWindow):
         else:
             logging.info("L'applicazione è già aggiornata.")
             self.show_no_update_message()
-
+    
     @pyqtSlot(bool, str)
     def on_update_completed(self, success, message):
         """Slot chiamato quando l'aggiornamento è completo."""
@@ -135,19 +144,23 @@ class NormaViewer(QMainWindow):
             QMessageBox.warning(self, "Aggiornamento Fallito", message)
             logging.error(f"Aggiornamento fallito: {message}")
 
-    def manual_update_check(self):
-        """Metodo per avviare manualmente il controllo degli aggiornamenti."""
-        logging.debug("Avvio del controllo manuale degli aggiornamenti.")
-
-        current_version = self.get_app_version()
-        logging.debug(f"Versione corrente dell'applicazione: {current_version}")
-
-        self.update_notifier.check_for_update(current_version)
-
     @pyqtSlot()
     def show_no_update_message(self):
         """Mostra un messaggio quando non ci sono aggiornamenti disponibili."""
         QMessageBox.information(self, "Nessun Aggiornamento", "La tua applicazione è già aggiornata.")
+
+    def get_app_version(self):
+        """Ottiene la versione dell'applicazione dal file delle risorse."""
+        try:
+            version_file_path = get_resource_path('resources/version.txt')
+            with open(version_file_path, 'r') as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            logging.error("File version.txt non trovato.")
+            return "0.0.1"  # Versione predefinita
+        except Exception as e:
+            logging.error(f"Errore nel caricamento della versione dell'app: {e}")
+            return "0.0.1"
 
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
@@ -268,18 +281,6 @@ class NormaViewer(QMainWindow):
         else:
             self.brocardi_dock.hide()
     
-    def get_app_version(self):
-        """Ottiene la versione dell'applicazione dal file delle risorse."""
-        try:
-            version_file_path = get_resource_path('resources/version.txt')
-            with open(version_file_path, 'r') as f:
-                return f.read().strip()
-        except FileNotFoundError:
-            logging.error("File version.txt non trovato.")
-            return "0.0.1"  # Versione predefinita
-        except Exception as e:
-            logging.error(f"Errore nel caricamento della versione dell'app: {e}")
-            return "0.0.1"
 
     def change_api_url(self):
         """Modifica l'URL dell'API attraverso un dialogo di input."""
