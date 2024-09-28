@@ -55,7 +55,7 @@ class NormaViewer(QMainWindow):
     def setup_ui(self):
         # Impostazioni dell'applicazione
         self.settings = QSettings("NormaApp", "NormaViewer")
-        self.api_url = self.settings.value("api_url", "https://0.0.0.0:8000")  # URL di default
+        self.api_url = self.settings.value("api_url", "https://localhost:8000")  # URL di default
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         
