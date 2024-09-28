@@ -1,4 +1,5 @@
 # visualex_ui/network/data_fetcher.py
+
 from PyQt6.QtCore import QThread, pyqtSignal
 import requests
 import logging

@@ -22,7 +22,7 @@ def get_resource_path(relative_path):
         base_path = sys._MEIPASS
     else:
         # Quando l'app è eseguita in ambiente di sviluppo
-        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     return os.path.join(base_path, 'resources', relative_path)
 
 
