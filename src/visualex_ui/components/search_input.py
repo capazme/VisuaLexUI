@@ -171,7 +171,7 @@ class SearchInputSection(QGroupBox):
             payload["act_number"] = act_number
 
         if article:
-            payload["article"] = article
+            payload["article"] = article  # Supporta articoli multipli (range o lista)
 
         if vigency_date:
             payload["version_date"] = vigency_date
@@ -180,3 +180,4 @@ class SearchInputSection(QGroupBox):
             payload["annex"] = annex
 
         return payload
+

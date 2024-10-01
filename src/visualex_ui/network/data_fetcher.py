@@ -8,7 +8,6 @@ import json
 from ..tools.norma import NormaVisitata
 from requests.exceptions import Timeout, ConnectionError, HTTPError, RequestException
 
-
 class FetchDataThread(QThread):
     data_fetched = pyqtSignal(object)
 
@@ -26,14 +25,20 @@ class FetchDataThread(QThread):
                 response = requests.post(self.url, json=self.payload, timeout=self.timeout)
                 response.raise_for_status()  # Lancia un'eccezione per codici di stato HTTP 4xx/5xx
                 data = response.json()
-                if 'norma_data' in data:
-                    normavisitata = NormaVisitata.from_dict(data['norma_data'])
-                    normavisitata._article_text = data.get('result', '')
-                    normavisitata._brocardi_info = data.get('brocardi_info', {})
-                    self.data_fetched.emit(normavisitata)
+
+                if isinstance(data, list):  # Gestiamo ora un array di risultati
+                    normavisitate_list = []
+                    for item in data:
+                        normavisitata = NormaVisitata.from_dict(item['norma_data'])
+                        normavisitata._article_text = item.get('result', '')
+                        normavisitata._brocardi_info = item.get('brocardi_info', {})
+                        normavisitate_list.append(normavisitata)
+
+                    self.data_fetched.emit(normavisitate_list)  # Emit lista di risultati
                 else:
                     error_msg = data.get('error', "Errore nella risposta dell'API.")
                     self.data_fetched.emit({'error': error_msg})
+
                 logging.info("Richiesta completata con successo.")
                 return  # Se la richiesta ha successo, esci dal metodo
             except (Timeout, ConnectionError) as e:
@@ -55,5 +60,3 @@ class FetchDataThread(QThread):
                 logging.error(f"Errore inaspettato: {e}")
                 self.data_fetched.emit({'error': "Si è verificato un errore inaspettato."})
                 return
-
-

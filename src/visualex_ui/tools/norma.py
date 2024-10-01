@@ -23,6 +23,18 @@ class Norma:
         self.tipo_atto_urn = normalize_act_type(self.tipo_atto)
         logging.debug(f"Norma initialized: {self}")
 
+    def __hash__(self):
+        """Implementazione di __hash__ per rendere la classe hashable."""
+        return hash((self.tipo_atto_urn, self.data, self.numero_atto))
+
+    def __eq__(self, other):
+        """Implementa __eq__ per confrontare due oggetti Norma."""
+        if not isinstance(other, Norma):
+            return NotImplemented
+        return (self.tipo_atto_urn == other.tipo_atto_urn and
+                self.data == other.data and
+                self.numero_atto == other.numero_atto)
+        
     @property
     def url(self):
         if not self._url:
@@ -62,6 +74,7 @@ class Norma:
 @dataclass(eq=False)
 class NormaVisitata:
     norma: Norma
+    allegato: str = None
     numero_articolo: str = None
     versione: str = None
     data_versione: str = None
@@ -69,17 +82,33 @@ class NormaVisitata:
     #timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
     def __hash__(self):
-        return hash((self.norma.tipo_atto_urn, self.norma.data, self.norma.numero_atto, self.numero_articolo, self.versione, self.data_versione))
+        """Implementazione di __hash__ per rendere la classe hashable."""
+        # Converti numero_articolo in una tupla se è una lista
+        numero_articolo_hashable = tuple(self.numero_articolo) if isinstance(self.numero_articolo, list) else self.numero_articolo
+        
+        # Calcola l'hash
+        return hash((
+            self.norma.tipo_atto_urn, 
+            self.norma.data, 
+            self.norma.numero_atto, 
+            numero_articolo_hashable,  # Usa la versione hashabile
+            self.versione, 
+            self.data_versione
+        ))
 
     def __eq__(self, other):
+        """Implementa __eq__ per confrontare due oggetti NormaVisitata."""
         if not isinstance(other, NormaVisitata):
             return NotImplemented
+        
         return (self.norma.tipo_atto_urn == other.norma.tipo_atto_urn and
                 self.norma.data == other.norma.data and
                 self.norma.numero_atto == other.norma.numero_atto and
                 self.numero_articolo == other.numero_articolo and
                 self.versione == other.versione and
-                self.data_versione == other.data_versione)
+                self.data_versione == other.data_versione and
+                self.allegato == other.allegato)
+
 
     def __post_init__(self):
         logging.debug(f"NormaVisitata initialized: {self}")
@@ -93,6 +122,7 @@ class NormaVisitata:
                 act_type=self.norma.tipo_atto_urn,
                 date=self.norma.data,
                 act_number=self.norma.numero_atto,
+                annex = self.allegato,
                 article=self.numero_articolo,
                 version=self.versione,
                 version_date=self.data_versione
@@ -108,6 +138,7 @@ class NormaVisitata:
     def to_dict(self):
         base_dict = self.norma.to_dict()
         base_dict.update({
+            'allegato': self.allegato,
             'numero_articolo': self.numero_articolo,
             'versione': self.versione,
             'data_versione': self.data_versione,
@@ -131,6 +162,7 @@ class NormaVisitata:
             numero_articolo=data.get('numero_articolo'),
             versione=data.get('versione'),
             data_versione=data.get('data_versione'),
+            allegato = data.get('allegato')
             #timestamp=data.get('timestamp')
         )
         logging.debug(f"NormaVisitata created: {norma_visitata}")

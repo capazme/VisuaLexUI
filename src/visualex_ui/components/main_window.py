@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, 
-                             QPushButton, QDockWidget, QSizePolicy, QMessageBox, QProgressDialog)
+                             QPushButton, QDockWidget, QSizePolicy, QMessageBox, QProgressDialog, QHBoxLayout)
 
 from PyQt6.QtCore import QSettings, Qt, QSize, pyqtSlot, QThread
 from PyQt6.QtGui import QIcon, QAction, QKeySequence, QShortcut
@@ -13,6 +13,7 @@ from ..utils.helpers import get_resource_path
 from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
 from ..tools.text_op import clean_text
+from ..tools.norma import NormaVisitata
 from ..utils.updater import UpdateNotifier, UpdateCheckWorker, ProgressDialog
 import logging
 import subprocess
@@ -51,7 +52,11 @@ class NormaViewer(QMainWindow):
         # Carica le impostazioni del tema salvate
         self.load_theme_settings()
         
-        
+        self.normavisitate = []  # Lista per memorizzare tutte le norme visitate
+        self.current_index = 0  # Indice dell'articolo attualmente visualizzato
+        self.current_article = None  # Tiene traccia dell'articolo attuale nel `tree`
+
+
     def setup_ui(self):
         # Impostazioni dell'applicazione
         self.settings = QSettings("NormaApp", "NormaViewer")
@@ -69,13 +74,34 @@ class NormaViewer(QMainWindow):
         # Layout principale
         main_layout = QVBoxLayout()
 
+        
         # Sezione di input di ricerca
         self.search_input_section = SearchInputSection(self)
         #self.search_input_section.setMinimumWidth(400)
         #self.search_input_section.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed))
-
+        
         main_layout.addWidget(self.search_input_section)
 
+        # Pulsanti di navigazione "Indietro" e "Avanti"
+        self.previous_button = QPushButton("Indietro")
+        self.previous_button.clicked.connect(self.show_previous_article)
+        self.previous_button.setEnabled(False)  # Disabilitato all'inizio
+
+        self.next_button = QPushButton("Avanti")
+        self.next_button.clicked.connect(self.show_next_article)
+        self.next_button.setEnabled(False)  # Disabilitato all'inizio
+
+        # Layout per i pulsanti di navigazione (centrato orizzontalmente)
+        navigation_layout = QHBoxLayout()
+        navigation_layout.addStretch(1)  # Aggiunge uno spazio elastico per centrare i pulsanti
+        navigation_layout.addWidget(self.previous_button)
+        navigation_layout.addSpacing(10)  # Spaziatura tra i pulsanti
+        navigation_layout.addWidget(self.next_button)
+        navigation_layout.addStretch(1)  # Aggiunge uno spazio elastico per centrare i pulsanti
+
+        # Aggiungi il layout dei pulsanti di navigazione al layout principale
+        main_layout.addLayout(navigation_layout)
+        
         # Widget centrale
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
@@ -164,7 +190,6 @@ class NormaViewer(QMainWindow):
         except Exception as e:
             logging.error(f"Errore nel caricamento della versione dell'app: {e}")
             return "0.0.1"
-
 
     def moveEvent(self, event):
         """Evento chiamato quando la finestra viene spostata."""
@@ -285,7 +310,6 @@ class NormaViewer(QMainWindow):
         else:
             self.brocardi_dock.hide()
     
-
     def change_api_url(self):
         """Modifica l'URL dell'API attraverso un dialogo di input."""
         new_url, ok = QInputDialog.getText(self, "Modifica URL API", "Inserisci il nuovo URL dell'API:")
@@ -390,54 +414,76 @@ class NormaViewer(QMainWindow):
 
         logging.info("Ricerca avviata.")
 
-    def handle_data_fetch(self, normavisitata, cache_key):
+    def handle_data_fetch(self, normavisitate, cache_key):
         """Gestisce i dati ricevuti dal thread di fetch."""
-        # Nascondi la barra di caricamento dopo aver caricato i dati
         self.search_input_section.search_progress_bar.setVisible(False)
 
-        # Caching dei dati
-        self.cache_manager.cache_data(cache_key, normavisitata)
+        if isinstance(normavisitate, list) and len(normavisitate) > 1:
+            # L'utente ha cercato più articoli
+            self.normavisitate = normavisitate  # Salva la lista dei risultati
+            self.current_index = 0  # Ripristina l'indice all'inizio
+            self.update_navigation_buttons()  # Aggiorna i pulsanti di navigazione
+            self.display_data(self.normavisitate[self.current_index])  # Visualizza il primo articolo
 
-        # Visualizza i dati
-        self.display_data(normavisitata)
+        elif isinstance(normavisitate, NormaVisitata) or (isinstance(normavisitate, list) and len(normavisitate) == 1):
+            # L'utente ha cercato un solo articolo o la lista contiene un solo elemento
+            self.normavisitate = normavisitate if isinstance(normavisitate, list) else [normavisitate]
+            self.current_index = 0
+            self.update_navigation_buttons()  # Disabilita i pulsanti di navigazione per la ricerca singola
+            self.display_data(self.normavisitate[self.current_index])
 
-        logging.info("Dati ricevuti dal thread di fetch.")
+
+    def update_navigation_buttons(self):
+        """Abilita o disabilita i pulsanti in base alla presenza di più articoli."""
+        if len(self.normavisitate) > 1:
+            # Abilita i pulsanti di navigazione solo se ci sono più articoli
+            self.previous_button.setEnabled(self.current_index > 0)
+            self.next_button.setEnabled(self.current_index < len(self.normavisitate) - 1)
+        else:
+            # Disabilita i pulsanti se c'è solo un articolo
+            self.previous_button.setEnabled(False)
+            self.next_button.setEnabled(False)
+
+
+
+    def show_previous_article(self):
+        """Mostra l'articolo precedente nei risultati di ricerca multipla."""
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.display_data(self.normavisitate[self.current_index])
+            self.update_navigation_buttons()
+
+    def show_next_article(self):
+        """Mostra l'articolo successivo nei risultati di ricerca multipla."""
+        if self.current_index < len(self.normavisitate) - 1:
+            self.current_index += 1
+            self.display_data(self.normavisitate[self.current_index])
+            self.update_navigation_buttons()
+
 
     def display_data(self, normavisitata):
-        """Visualizza i dati normativi ricevuti e gestisce dinamicamente le sezioni informative."""
-        
-        # Pulizia delle tab dinamiche esistenti
+        """Visualizza un singolo articolo e le informazioni correlate."""
         self.brocardi_dock.clear_dynamic_tabs()
 
-        # Verifica se i dati ricevuti contengono un errore
-        if isinstance(normavisitata, dict) and 'error' in normavisitata:
-            self.output_dock.display_text(normavisitata['error'])  # Usa self.output_dock
-            QMessageBox.critical(self, "Errore", normavisitata['error'])
-            return
-
-        # Aggiorna la sezione di informazioni della norma
+        # Aggiorna la sezione di informazioni sulla norma
         self.norma_info_section.update_info(normavisitata)
 
-        # Pulisci e visualizza il testo della norma
+        # Visualizza il testo dell'articolo
         cleaned_text = clean_text(normavisitata._article_text) if normavisitata._article_text else ''
-        self.output_dock.display_text(cleaned_text)  # Usa self.output_dock
+        self.output_dock.display_text(cleaned_text)
 
-        # Verifica se ci sono informazioni valide per i Brocardi basate su 'position'
+        # Visualizza le informazioni Brocardi (se presenti)
         brocardi_info = normavisitata._brocardi_info if normavisitata._brocardi_info else None
         if brocardi_info:
             position = brocardi_info.get('position', "").strip()
-
-            if position and position != "Not Available":  # Controlla che 'position' sia valido e non vuoto
-                logging.info(f"Mostrando il dock Brocardi con la posizione: {position}")
+            if position:
                 link = brocardi_info.get('link', "#")
                 self.brocardi_dock.add_brocardi_info(position, link, brocardi_info.get('info', {}))
-                self.brocardi_dock.show()  # Mostra il dock se la posizione è valida
             else:
-                logging.info("La posizione di Brocardi non è valida o è vuota, nascondo il dock.")
-                self.brocardi_dock.hide()  # Nascondi il dock se 'position' è vuoto o non valido
+                self.brocardi_dock.hide()
         else:
-            logging.info("Informazioni Brocardi non presenti, nascondo il dock.")
             self.brocardi_dock.hide()
+
 
     def clipboard(self):
         """Ritorna l'oggetto clipboard dell'applicazione."""

@@ -172,3 +172,15 @@ class OutputArea(QDockWidget):
         """
         logging.info("Pulizia dell'area di testo della norma")
         self.norma_text_edit.clear()
+
+    def append_text(self, text):
+        """
+        Aggiunge il testo fornito all'area di output senza sovrascrivere il contenuto esistente.
+        """
+        logging.info("Aggiunta di testo nella OutputArea")
+        if text:
+            logging.debug(f"Testo aggiunto: {text[:100]}...")  # Mostra solo i primi 100 caratteri per non sovraccaricare i log
+        current_text = self.norma_text_edit.toPlainText()
+        new_text = current_text + "\n\n" + text  # Aggiunge due righe vuote tra gli articoli
+        self.norma_text_edit.setText(new_text)
+

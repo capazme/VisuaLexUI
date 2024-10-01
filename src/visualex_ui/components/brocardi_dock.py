@@ -51,7 +51,6 @@ class BrocardiDockWidget(QDockWidget):
     def add_brocardi_info(self, position, link, brocardi_info):
         """
         Aggiunge informazioni sui Brocardi al widget, inclusa la posizione e il link.
-        Mostra il dock solo se la posizione è valida.
         """
         # Controlla se la posizione è valida e non vuota
         if not position or position == "Not Available" or position.strip() == "":
@@ -75,6 +74,8 @@ class BrocardiDockWidget(QDockWidget):
 
         # Mostra il dock se ci sono informazioni valide
         self.show()
+
+
 
     def add_dynamic_list_tab(self, section_name, content):
         """
@@ -165,7 +166,7 @@ class BrocardiDockWidget(QDockWidget):
         parent_widget.setItemWidget(item, item_widget)  # Imposta il widget come item di QListWidget
 
     def clear_dynamic_tabs(self):
-        """Rimuove tutte le tab dinamiche e pulisce la struttura dei dati."""
+        """Pulisce le tabs dinamiche esistenti."""
         self.tabs.clear()
         self.dynamic_tabs.clear()
 

@@ -62,15 +62,18 @@ class NormaInfoSection(QGroupBox):
 
     def update_info(self, normavisitata):
         """
-        Metodo per aggiornare le informazioni della norma visualizzate nella sezione.
+        Aggiorna le informazioni della norma visualizzate nella sezione per una singola norma.
         """
         if not normavisitata:
             self.clear_info()
             return
 
+        # Pulizia delle informazioni precedenti
+        self.clear_info()
+
         # Popola le etichette con le informazioni della norma
         full_url = normavisitata.urn
-        self.urn_label.setText(f'<a href="{full_url}">{full_url}</a>')  # Mostra l'URL completo all'interno della scroll area
+        self.urn_label.setText(f'<a href="{full_url}">{full_url}</a>')  # Mostra l'URL completo
 
         self.tipo_atto_label.setText(normavisitata.norma.tipo_atto_str)
 
@@ -92,20 +95,18 @@ class NormaInfoSection(QGroupBox):
             self.numero_atto_label.setVisible(False)
             self.layout.labelForField(self.numero_atto_label).setVisible(False)
 
+
     def clear_info(self):
-        """
-        Metodo per pulire le informazioni visualizzate.
-        """
+        """Pulizia delle informazioni visualizzate nella sezione."""
         self.urn_label.clear()
         self.tipo_atto_label.clear()
-
         self.data_label.clear()
         self.data_label.setVisible(False)
         self.layout.labelForField(self.data_label).setVisible(False)
-
         self.numero_atto_label.clear()
         self.numero_atto_label.setVisible(False)
         self.layout.labelForField(self.numero_atto_label).setVisible(False)
+
 
     def copy_all_norma_info(self):
         """
