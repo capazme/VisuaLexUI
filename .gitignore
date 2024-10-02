@@ -11,4 +11,3 @@ release_tar.sh
 releases
 *.app
 *.zip
-history_dock.py
