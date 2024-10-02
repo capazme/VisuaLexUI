@@ -10,6 +10,41 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
                     )
 
+def clean_article_input(article_string):
+    """Pulisce e valida la stringa degli articoli rimuovendo virgole finali e spazi extra."""
+    # Rimuovi spazi e virgole finali
+    cleaned = article_string.strip().rstrip(',')
+    
+    # Dividi la stringa sugli articoli separati da virgola
+    articles = cleaned.split(',')
+    
+    # Rimuovi eventuali stringhe vuote dalla lista risultante
+    return [article.strip() for article in articles if article.strip()]
+
+def parse_articles(article_str):
+    """
+    Parse a string of articles which can contain ranges (e.g., "1-5") or comma-separated values (e.g., "1,2,3").
+    Excludes ranges where the dash is followed by a letter (e.g., "2-bis").
+    Returns a list of individual article numbers.
+    """
+    articles = set()
+    parts = article_str.split(',')
+    
+    for part in parts:
+        part = part.strip()
+        # Verifica se il trattino è presente e non è seguito da una lettera (come in "2-bis")
+        if '-' in part and not re.search(r'-\s*[a-zA-Z]', part):
+            try:
+                start, end = part.split('-')
+                articles.update(str(range(int(start), int(end) + 1)))
+            except ValueError:
+                # In caso di errore di conversione a intero, ignorare e trattare come singolo articolo
+                articles.add(part)
+        else:
+            articles.add(part)
+
+    return sorted(articles, key=lambda x: (int(re.match(r'\d+', x).group()) if re.match(r'\d+', x) else 0, x))
+
 def nospazi(text):
     """
     Removes multiple spaces from a string.

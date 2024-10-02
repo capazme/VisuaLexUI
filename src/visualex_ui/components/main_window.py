@@ -12,7 +12,7 @@ from ..network.data_fetcher import FetchDataThread
 from ..utils.helpers import get_resource_path
 from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
-from ..tools.text_op import clean_text
+from ..tools.text_op import clean_text, clean_article_input
 from ..tools.norma import NormaVisitata
 from ..utils.updater import UpdateNotifier, UpdateCheckWorker, ProgressDialog
 import logging
@@ -418,31 +418,41 @@ class NormaViewer(QMainWindow):
         """Gestisce i dati ricevuti dal thread di fetch."""
         self.search_input_section.search_progress_bar.setVisible(False)
 
-        if isinstance(normavisitate, list) and len(normavisitate) > 1:
+        if isinstance(normavisitate, list):
             # L'utente ha cercato più articoli
             self.normavisitate = normavisitate  # Salva la lista dei risultati
             self.current_index = 0  # Ripristina l'indice all'inizio
-            self.update_navigation_buttons()  # Aggiorna i pulsanti di navigazione
+            self.current_article = self.normavisitate[self.current_index].numero_articolo  # Inizializza l'articolo attuale
+            self.update_navigation_buttons()
             self.display_data(self.normavisitate[self.current_index])  # Visualizza il primo articolo
 
-        elif isinstance(normavisitate, NormaVisitata) or (isinstance(normavisitate, list) and len(normavisitate) == 1):
-            # L'utente ha cercato un solo articolo o la lista contiene un solo elemento
-            self.normavisitate = normavisitate if isinstance(normavisitate, list) else [normavisitate]
+        elif isinstance(normavisitate, NormaVisitata):
+            # L'utente ha cercato un singolo articolo
+            # Pulisci l'input degli articoli
+            self.normavisitate = [normavisitate]
+            articles = clean_article_input(self.normavisitate[self.current_index].numero_articolo)
+
+            if articles:
+                self.normavisitate[self.current_index].numero_articolo = articles
             self.current_index = 0
-            self.update_navigation_buttons()  # Disabilita i pulsanti di navigazione per la ricerca singola
+            self.update_navigation_buttons()
             self.display_data(self.normavisitate[self.current_index])
 
 
+
     def update_navigation_buttons(self):
-        """Abilita o disabilita i pulsanti in base alla presenza di più articoli."""
+        """Abilita o disabilita i pulsanti e gestisce la visibilità in base alla presenza di più articoli."""
         if len(self.normavisitate) > 1:
-            # Abilita i pulsanti di navigazione solo se ci sono più articoli
+            # Mostra i pulsanti e abilita/disabilita in base alla posizione
+            self.previous_button.setVisible(True)
+            self.next_button.setVisible(True)
             self.previous_button.setEnabled(self.current_index > 0)
             self.next_button.setEnabled(self.current_index < len(self.normavisitate) - 1)
         else:
-            # Disabilita i pulsanti se c'è solo un articolo
-            self.previous_button.setEnabled(False)
-            self.next_button.setEnabled(False)
+            # Nascondi i pulsanti se c'è solo un articolo
+            self.previous_button.setVisible(False)
+            self.next_button.setVisible(False)
+
 
 
 
