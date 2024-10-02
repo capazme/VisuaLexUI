@@ -167,11 +167,10 @@ class OutputArea(QDockWidget):
         return content
 
     def clear(self):
-        """
-        Pulisce il contenuto del QTextEdit.
-        """
+        """Pulisce il contenuto del QTextEdit."""
         logging.info("Pulizia dell'area di testo della norma")
         self.norma_text_edit.clear()
+
 
     def append_text(self, text):
         """

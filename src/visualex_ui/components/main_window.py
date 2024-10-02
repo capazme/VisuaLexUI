@@ -7,6 +7,7 @@ from .search_input import SearchInputSection
 from .norma_info import NormaInfoSection
 from .brocardi_dock import BrocardiDockWidget
 from .output_area import OutputArea
+from .history_dock import HistoryDockWidget
 from ..theming.theme_manager import ThemeManager, ThemeDialog
 from ..network.data_fetcher import FetchDataThread
 from ..utils.helpers import get_resource_path
@@ -46,6 +47,9 @@ class NormaViewer(QMainWindow):
         # Crea l'icona di aggiornamento
         self.create_update_icon()
         
+        # Crea la cronologia delle ricerche
+        self.create_collapsible_history_dock()
+
         # Configurare una cache manager
         self.cache_manager = CacheManager()
 
@@ -85,23 +89,30 @@ class NormaViewer(QMainWindow):
         # Pulsanti di navigazione "Indietro" e "Avanti"
         self.previous_button = QPushButton("Indietro")
         self.previous_button.clicked.connect(self.show_previous_article)
-        self.previous_button.setEnabled(False)  # Disabilitato all'inizio
+        self.previous_button.setEnabled(False)
 
         self.next_button = QPushButton("Avanti")
         self.next_button.clicked.connect(self.show_next_article)
-        self.next_button.setEnabled(False)  # Disabilitato all'inizio
+        self.next_button.setEnabled(False)
 
         # Layout per i pulsanti di navigazione (centrato orizzontalmente)
         navigation_layout = QHBoxLayout()
-        navigation_layout.addStretch(1)  # Aggiunge uno spazio elastico per centrare i pulsanti
+        navigation_layout.addStretch(1)
         navigation_layout.addWidget(self.previous_button)
-        navigation_layout.addSpacing(10)  # Spaziatura tra i pulsanti
+        navigation_layout.addSpacing(10)
         navigation_layout.addWidget(self.next_button)
-        navigation_layout.addStretch(1)  # Aggiunge uno spazio elastico per centrare i pulsanti
+        navigation_layout.addStretch(1)
 
         # Aggiungi il layout dei pulsanti di navigazione al layout principale
         main_layout.addLayout(navigation_layout)
-        
+
+        """ # Aggiungi pulsante per attivare/disattivare la cronologia
+        self.toggle_history_button = QPushButton("Mostra/Nascondi Cronologia")
+        self.toggle_history_button.clicked.connect(self.toggle_history_dock)
+        main_layout.addWidget(self.toggle_history_button)  # Aggiungi il pulsante alla UI
+ """
+
+            
         # Widget centrale
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
@@ -111,6 +122,8 @@ class NormaViewer(QMainWindow):
         self.create_collapsible_norma_info_dock()
         self.create_collapsible_brocardi_dock()
         self.create_collapsible_output_dock()
+        self.create_collapsible_history_dock()  # Crea il dock della cronologia
+
 
         # Impostazioni di default per il widget centrale
         self.centralWidget().setMinimumSize(350, 420)  # Dimensioni minime ragionevoli
@@ -255,6 +268,21 @@ class NormaViewer(QMainWindow):
         #self.output_dock.setMinimumSize(QSize(75, 37))  # Ridurre le dimensioni minime per i dock
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.output_dock)
 
+    def create_collapsible_history_dock(self):
+        """Crea un dock widget collassabile per la cronologia delle ricerche."""
+        self.history_dock = HistoryDockWidget(self)
+        self.history_dock.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred))
+        self.history_dock.setMinimumSize(QSize(200, 100))  # Dimensioni minime ragionevoli
+        self.history_dock.setVisible(False)  # Nascondi inizialmente
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.history_dock)
+
+    def toggle_history_dock(self):
+        """Mostra o nasconde il dock della cronologia."""
+        if self.history_dock.isVisible():
+            self.history_dock.hide()  # Nascondi se visibile
+        else:
+            self.history_dock.show()  # Mostra se nascosto
+
     def show_norma_info_dock(self):
         """Mostra o nasconde il dock delle informazioni sulla norma."""
         if not self.norma_info_dock.isVisible():
@@ -298,6 +326,11 @@ class NormaViewer(QMainWindow):
         check_update_action = QAction("Controlla Aggiornamenti", self)
         check_update_action.triggered.connect(self.manual_update_check)
         settings_menu.addAction(check_update_action)
+        
+        # Aggiungi azione per il controllo manuale degli aggiornamenti
+        toggle_history_action = QAction("Mostra/Nascondi cronologia", self)
+        toggle_history_action.triggered.connect(self.toggle_history_dock)
+        settings_menu.addAction(toggle_history_action)
 
     def toggle_norma_info(self):
         """Mostra o nasconde la sezione delle informazioni sulla norma."""
@@ -393,6 +426,12 @@ class NormaViewer(QMainWindow):
             QMessageBox.warning(self, "Errore di Input", "Il campo 'Tipo di Atto' è obbligatorio.")
             return
 
+        
+        # Pulisce le tab di Brocardi e l'output prima di iniziare una nuova ricerca
+        self.brocardi_dock.clear_dynamic_tabs()  # Svuota tutte le tab di Brocardi
+        self.output_dock.clear()  # Pulisce l'area di output
+
+
         # Genera la chiave di cache dinamicamente in base al contenuto del payload
         cache_key_parts = [f"{key}={value}" for key, value in payload.items() if value]
         cache_key = "&".join(cache_key_parts)
@@ -418,26 +457,53 @@ class NormaViewer(QMainWindow):
         """Gestisce i dati ricevuti dal thread di fetch."""
         self.search_input_section.search_progress_bar.setVisible(False)
 
+        # Verifica se è una ricerca multipla o singola
         if isinstance(normavisitate, list):
-            # L'utente ha cercato più articoli
+            # Gestione della ricerca multipla
             self.normavisitate = normavisitate  # Salva la lista dei risultati
             self.current_index = 0  # Ripristina l'indice all'inizio
             self.current_article = self.normavisitate[self.current_index].numero_articolo  # Inizializza l'articolo attuale
+
+            # Aggiungi la ricerca multipla alla cronologia
+            self.history_dock.add_search_to_history(self.normavisitate)
+
+            # Pulisci il dock di Brocardi e l'area di output
+            self.brocardi_dock.clear_dynamic_tabs()
+            self.output_dock.clear()
+
+            # Visualizza il primo articolo
             self.update_navigation_buttons()
-            self.display_data(self.normavisitate[self.current_index])  # Visualizza il primo articolo
+            self.display_data(self.normavisitate[self.current_index])
 
         elif isinstance(normavisitate, NormaVisitata):
-            # L'utente ha cercato un singolo articolo
-            # Pulisci l'input degli articoli
+            # Gestione della ricerca singola
             self.normavisitate = [normavisitate]
-            articles = clean_article_input(self.normavisitate[self.current_index].numero_articolo)
 
-            if articles:
-                self.normavisitate[self.current_index].numero_articolo = articles
+            # Aggiungi la ricerca singola alla cronologia
+            self.history_dock.add_search_to_history(normavisitate)
+
+            # Pulisci il dock di Brocardi e l'area di output
+            self.brocardi_dock.clear_dynamic_tabs()
+            self.output_dock.clear()
+
+            # Visualizza l'articolo
             self.current_index = 0
             self.update_navigation_buttons()
             self.display_data(self.normavisitate[self.current_index])
 
+    def load_multiple_articles_from_history(self, normavisitate):
+        """Carica una ricerca multipla dalla cronologia."""
+        self.normavisitate = normavisitate
+        self.current_index = 0
+        self.update_navigation_buttons()
+        self.display_data(self.normavisitate[self.current_index])
+
+    def load_single_article_from_history(self, norma_visitata):
+        """Carica una singola ricerca dalla cronologia."""
+        self.normavisitate = [norma_visitata]
+        self.current_index = 0
+        self.update_navigation_buttons()
+        self.display_data(self.normavisitate[self.current_index])
 
 
     def update_navigation_buttons(self):
@@ -473,6 +539,7 @@ class NormaViewer(QMainWindow):
 
     def display_data(self, normavisitata):
         """Visualizza un singolo articolo e le informazioni correlate."""
+        # Pulisce le tab dinamiche di Brocardi prima di visualizzare nuovi dati
         self.brocardi_dock.clear_dynamic_tabs()
 
         # Aggiorna la sezione di informazioni sulla norma
@@ -495,6 +562,7 @@ class NormaViewer(QMainWindow):
             self.brocardi_dock.hide()
 
 
+
     def clipboard(self):
         """Ritorna l'oggetto clipboard dell'applicazione."""
         return QApplication.clipboard()
@@ -512,6 +580,10 @@ class NormaViewer(QMainWindow):
         # Scorciatoia per 'Ctrl+R' che riavvia l'applicazione
         restart_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
         restart_shortcut.activated.connect(self.restart_application)
+        
+        # Scorciatoia per 'Ctrl+H' che mostra la cronoloigia
+        history_shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+        history_shortcut.activated.connect(self.toggle_history_dock)
     
     def restart_application(self):
         """Riavvia l'applicazione quando si preme Ctrl+R."""
