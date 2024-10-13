@@ -580,10 +580,25 @@ class NormaViewer(QMainWindow):
         # Scorciatoia per 'Ctrl+R' che riavvia l'applicazione
         restart_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
         restart_shortcut.activated.connect(self.restart_application)
-        
-        # Scorciatoia per 'Ctrl+H' che mostra la cronoloigia
-        history_shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
+
+        # Determina il modificatore in base al sistema operativo
+        if sys.platform == "darwin":  # macOS
+            modifier = Qt.KeyboardModifier.MetaModifier  # Usa Cmd su macOS
+        else:  # Windows/Linux
+            modifier = Qt.KeyboardModifier.ControlModifier  # Usa Ctrl su Windows/Linux
+
+        # Scorciatoia per mostrare/nascondere la cronologia con Cmd+H (Ctrl+H su Windows/Linux)
+        history_shortcut = QShortcut(QKeySequence(modifier | Qt.Key.Key_T), self)
         history_shortcut.activated.connect(self.toggle_history_dock)
+
+        # Scorciatoia per navigare agli articoli precedenti con Cmd+freccia sinistra (Ctrl su Windows/Linux)
+        previous_article_shortcut = QShortcut(QKeySequence(modifier | Qt.Key.Key_A), self)
+        previous_article_shortcut.activated.connect(self.show_previous_article)
+
+        # Scorciatoia per navigare agli articoli successivi con Cmd+freccia destra (Ctrl su Windows/Linux)
+        next_article_shortcut = QShortcut(QKeySequence(modifier | Qt.Key.Key_D), self)
+        next_article_shortcut.activated.connect(self.show_next_article)
+
     
     def restart_application(self):
         """Riavvia l'applicazione quando si preme Ctrl+R."""
