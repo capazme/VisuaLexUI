@@ -1,5 +1,5 @@
 # visualex_ui/components/brocardi_dock.py
-from PyQt6.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QLabel, QTabWidget, QPushButton, QListWidget, QTextBrowser, QListWidgetItem, QScrollArea, QSizePolicy
+from PyQt6.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QLabel, QTabWidget, QListWidget, QTextBrowser, QListWidgetItem, QScrollArea, QSizePolicy
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QTextOption
 import logging

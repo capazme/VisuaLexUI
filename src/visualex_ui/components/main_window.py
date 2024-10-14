@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (QMainWindow, QStatusBar, QVBoxLayout, QWidget, QMessageBox, QInputDialog, QMenu, QApplication, 
-                             QPushButton, QDockWidget, QSizePolicy, QMessageBox, QProgressDialog, QHBoxLayout)
+                             QPushButton, QDockWidget, QSizePolicy, QMessageBox, QHBoxLayout)
 
-from PyQt6.QtCore import QSettings, Qt, QSize, pyqtSlot, QThread
-from PyQt6.QtGui import QIcon, QAction, QKeySequence, QShortcut
+from PyQt6.QtCore import QSettings, Qt, QSize, pyqtSlot
+from PyQt6.QtGui import QAction, QKeySequence, QShortcut
 from .search_input import SearchInputSection
 from .norma_info import NormaInfoSection
 from .brocardi_dock import BrocardiDockWidget
@@ -15,7 +15,7 @@ from ..utils.cache_manager import CacheManager
 from ..tools.map import FONTI_PRINCIPALI
 from ..tools.text_op import clean_text, clean_article_input
 from ..tools.norma import NormaVisitata
-from ..utils.updater import UpdateNotifier, UpdateCheckWorker, ProgressDialog
+from ..utils.updater import UpdateNotifier
 import logging
 import subprocess
 import threading
