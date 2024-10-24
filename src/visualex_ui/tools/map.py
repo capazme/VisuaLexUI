@@ -13,7 +13,7 @@ NORMATTIVA_URN_CODICI = {
     "codice postale e delle telecomunicazioni": "decreto.del.presidente.della.repubblica:1973-03-29;156:1",
     "codice di procedura penale": "decreto.del.presidente.della.repubblica:1988-09-22;447",
     "norme di attuazione, di coordinamento e transitorie del codice di procedura penale": "decreto.legislativo:1989-07-28;271",
-    "regolamento per l'esecuzione del codice di procedura penale": "ministero.grazia.e.giustizia:decreto:1989-09-30;334",
+    "regolamento per l'esecuzione del codice di procedura penale": "/uri-res/N2Ls?urn:nir:ministero.grazia.e.giustizia:decreto:1989-09-30;334",
     "codice della strada": "decreto.legislativo:1992-04-30;285",
     "regolamento di esecuzione e di attuazione del nuovo codice della strada.": "decreto.del.presidente.della.repubblica:1992-12-16;495",
     "codice del processo tributario": "decreto.legislativo:1992-12-31;546",
@@ -27,16 +27,14 @@ NORMATTIVA_URN_CODICI = {
     "codice del consumo": "decreto.legislativo:2005-09-06;206",
     "codice delle assicurazioni private": "decreto.legislativo:2005-09-07;209",
     "norme in materia ambientale": "decreto.legislativo:2006-04-03;152",
-    "nuovo Codice dei contratti pubblici": "decreto.legislativo:2023;036",
-    "codice dei contratti pubblici (in vigore fino al 18 aprile 2016)": "decreto.legislativo:2006-04-12;163",
-    "regolamento di esecuzione ed attuazione del Codice dei contratti pubblici": "decreto.del.presidente.della.repubblica:2010-10-05;207",
+    "codice dei contratti pubblici": "decreto.legislativo:2023-03-31;36",
     "codice delle pari opportunità": "decreto.legislativo:2006-04-11;198",
     "codice dell'ordinamento militare": "decreto.legislativo:2010-03-15;66",
     "codice del processo amministrativo": "decreto.legislativo:2010-07-02;104:2",
     "codice del turismo": "decreto.legislativo:2011-05-23;79",
     "codice antimafia": "decreto.legislativo:2011-09-06;159",
     "codice di giustizia contabile": "decreto.legislativo:2016-08-26;174:1",
-    "codice del terzo settore": "decreto.legislativo:2017-07-03;117",
+    "codice del Terzo settore": "decreto.legislativo:2017-07-03;117",
     "codice della protezione civile": "decreto.legislativo:2018-01-02;1",
     "codice della crisi d'impresa e dell'insolvenza": "decreto.legislativo:2019-01-12;14"
 }
@@ -61,7 +59,6 @@ BROCARDI_CODICI = {
     "Codice del consumo(D.lgs. 6 settembre 2005, n. 206)": "https://www.brocardi.it/codice-del-consumo/",
     "Codice delle assicurazioni private(D.lgs. 7 settembre 2005, n. 209)": "https://www.brocardi.it/codice-delle-assicurazioni-private/",
     "Codice dei beni culturali e del paesaggio(D.lgs. 22 gennaio 2004, n. 42)": "https://www.brocardi.it/codice-dei-beni-culturali-e-del-paesaggio/",
-    "Codice dei contratti pubblici [ABROGATO](D.lgs. 18 aprile 2016, n. 50)": "https://www.brocardi.it/codice-dei-contratti-pubblici/",
     "Codice del processo amministrativo(D.lgs. 2 luglio 2010, n. 104)": "https://www.brocardi.it/codice-del-processo-amministrativo/",
     "Codice del turismo(D.lgs. 23 maggio 2011, n. 79)": "https://www.brocardi.it/codice-del-turismo/",
     "Codice dell'ambiente(D.lgs. 3 aprile 2006, n. 152)": "https://www.brocardi.it/codice-dell-ambiente/",
@@ -157,6 +154,7 @@ NORMATTIVA_SEARCH = {
         "regio decreto": "regio decreto",
         "dpr": "decreto del presidente della repubblica",
         "d.p.r.": "decreto del presidente della repubblica",
+        "decreto.del.presidente.della.repubblica": "decreto del presidente della repubblica",
         "dl": "decreto legge",
         "dlgs": "decreto legislativo",
         "l": "legge",
@@ -278,6 +276,7 @@ NORMATTIVA = {
         "c.p.": "codice penale",
         "c.p.c": "codice di procedura civile",
         "c.p.p.": "codice di procedura penale",
+        "c.c.p": "codice dei contratti pubblici",
         "cad": "codice dell'amministrazione digitale",
         "cam": "codice antimafia",
         "camb": "norme in materia ambientale",
@@ -368,7 +367,8 @@ NORMATTIVA = {
         "norme amb.": "norme in materia ambientale",
         "norme in materia ambientale": "norme in materia ambientale",
         "prel.": "preleggi",
-        "preleggi": "preleggi"}
+        "preleggi": "preleggi"
+        }
     
 BROCARDI_MAP = {
     "Disposizioni in materia di separazione dei genitori e affidamento condiviso dei figli(L. 8 febbraio 2006, n. 54)": "https://www.brocardi.it/affido-condiviso/",
