@@ -16,18 +16,17 @@ class BrocardiDockWidget(QDockWidget):
         self.brocardi_info_widget = QWidget()
         brocardi_layout = QVBoxLayout()
 
-        # Crea una QScrollArea per la position_label con scroll orizzontale abilitato
+        # Crea una QScrollArea per la position_label con scroll orizzontale disabilitato
         position_scroll_area = QScrollArea()
         position_scroll_area.setFixedHeight(40)
         position_scroll_area.setWidgetResizable(True)
-        position_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)  # Scrollbar orizzontale solo quando necessario
-        position_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar verticale
+        position_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar orizzontale
+        position_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar verticale (se non necessario)
 
         # Etichetta per la posizione dei Brocardi
         self.position_label = QLabel()
         self.position_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction | Qt.TextInteractionFlag.TextSelectableByMouse)
-        self.position_label.setWordWrap(False)  # Permette di avvolgere il testo se necessario
-        self.position_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        self.position_label.setWordWrap(True)  # Abilita il wrapping del testo
         self.position_label.setOpenExternalLinks(True)
 
         position_scroll_area.setWidget(self.position_label)
@@ -65,6 +64,9 @@ class BrocardiDockWidget(QDockWidget):
         html_text = f'<a href="{link}">{position}</a>'
         self.position_label.setText(html_text)
 
+        # Pulisci le tabs dinamiche esistenti
+        self.clear_dynamic_tabs()
+
         # Aggiungi sezioni dinamiche per le informazioni sui Brocardi (se presenti)
         for section_name, content in brocardi_info.items():
             if section_name in ['Brocardi', 'Massime'] and content:
@@ -75,8 +77,6 @@ class BrocardiDockWidget(QDockWidget):
         # Mostra il dock se ci sono informazioni valide
         self.show()
 
-
-
     def add_dynamic_list_tab(self, section_name, content):
         """
         Crea una tab dinamica con una lista di item per Brocardi o Massime.
@@ -85,8 +85,13 @@ class BrocardiDockWidget(QDockWidget):
 
         # Crea il QListWidget con elementi wrappati
         list_widget = QListWidget()
-        list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        list_widget.setSelectionMode(QListWidget.SelectionMode.NoSelection)
         list_widget.setStyleSheet("QListWidget::item { border: 1px solid #4E878C; margin: 4px; padding: 8px; }")
+
+        # Abilita il wrapping del testo negli elementi
+        list_widget.setWordWrap(True)
+        list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar orizzontale
+        list_widget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)    # Abilita scrollbar verticale se necessario
 
         # Aggiungi gli item alla lista
         for item_text in content:
@@ -96,6 +101,8 @@ class BrocardiDockWidget(QDockWidget):
         # Avvolgi il QListWidget in una QScrollArea
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar orizzontale
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)     # Abilita scrollbar verticale se necessario
         scroll_area.setWidget(list_widget)
 
         tab_layout = QVBoxLayout()
@@ -117,10 +124,15 @@ class BrocardiDockWidget(QDockWidget):
         text_edit.setReadOnly(True)
         text_edit.setWordWrapMode(QTextOption.WrapMode.WordWrap)  # Abilita il wrapping del testo
         text_edit.setText(content.strip())
+        text_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar orizzontale
+        text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)     # Abilita scrollbar verticale se necessario
+        text_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # Avvolgi il QTextBrowser in una QScrollArea per gestire contenuti lunghi
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar orizzontale
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)     # Abilita scrollbar verticale se necessario
         scroll_area.setWidget(text_edit)
         
         tab_layout = QVBoxLayout()
@@ -155,8 +167,10 @@ class BrocardiDockWidget(QDockWidget):
         text_browser = QTextBrowser()
         text_browser.setText(text)
         text_browser.setOpenExternalLinks(True)  # Permette di cliccare su link se presenti
-        text_browser.setMinimumHeight(50)  # Altezza minima
-        text_browser.setMaximumHeight(200)  # Altezza massima per evitare di occupare troppo spazio
+        text_browser.setWordWrapMode(QTextOption.WrapMode.WordWrap)  # Abilita il wrapping del testo
+        text_browser.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Disabilita scrollbar orizzontale
+        text_browser.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)    # Se non vuoi scrolling verticale in questo widget
+        text_browser.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         # Aggiungi QTextBrowser al layout
         layout.addWidget(text_browser)

@@ -4,6 +4,7 @@ import logging
 from .urngenerator import generate_urn
 from .text_op import normalize_act_type
 from .config import MAX_CACHE_SIZE
+from .treextractor import get_tree
 
 @dataclass
 class Norma:
