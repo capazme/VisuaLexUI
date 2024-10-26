@@ -17,7 +17,7 @@ class FetchDataThread(QThread):
         self.payload = payload
         self.endpoint_type = endpoint_type  # Tipo di endpoint per decidere quale chiamata effettuare
         self.max_retries = 3  # Numero massimo di tentativi
-        self.timeout = 10  # Timeout per le richieste in secondi
+        self.timeout = 1000  # Timeout per le richieste in secondi
 
     def run(self):
         attempts = 0
